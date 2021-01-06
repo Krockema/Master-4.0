@@ -17,7 +17,7 @@ namespace Master40.DataGenerator.Verification
         public double? ActualOrganizationDegree;
         public double? GeneratedOrganizationDegree;
 
-        public void VerifyGeneratedData(TransitionMatrix transitionMatrix, List<Dictionary<long, Node>> nodesPerLevel,
+        public void VerifyGeneratedData(TransitionMatrix transitionMatrix, List<List<Node>> nodesPerLevel,
             MasterTableResourceCapability capabilities, TransitionMatrixInput transitionMatrixInput, bool noOutput = false)
         {
 
@@ -31,29 +31,26 @@ namespace Master40.DataGenerator.Verification
             {
                 Pi = new double[capabilities.ParentCapabilities.Count + matrixSizeCorrection, capabilities.ParentCapabilities.Count + matrixSizeCorrection]
             };
-            for (var i = 0; i < nodesPerLevel.Count - 1; i++)
+            foreach (var article in nodesPerLevel.SelectMany(_ => _).Where(x => x.AssemblyLevel < nodesPerLevel.Count))
             {
-                foreach (var article in nodesPerLevel[i].Values)
+                var operationCount = 0;
+                var lastCapPos = 0;
+                do
                 {
-                    var operationCount = 0;
-                    var lastCapPos = 0;
-                    do
+                    var capPos = capabilities.ParentCapabilities.FindIndex(x =>
+                        object.ReferenceEquals(x,
+                            article.Operations[operationCount].MOperation.ResourceCapability.ParentResourceCapability));
+                    if (transitionMatrixInput.ExtendedTransitionMatrix || operationCount != 0)
                     {
-                        var capPos = capabilities.ParentCapabilities.FindIndex(x =>
-                            object.ReferenceEquals(x,
-                                article.Operations[operationCount].MOperation.ResourceCapability.ParentResourceCapability));
-                        if (transitionMatrixInput.ExtendedTransitionMatrix || operationCount != 0)
-                        {
-                            actualTransitionMatrix.Pi[lastCapPos, capPos]++;
-                        }
-                        lastCapPos = capPos + matrixSizeCorrection;
-                        operationCount++;
-                    } while (operationCount < article.Operations.Count);
-
-                    if (transitionMatrixInput.ExtendedTransitionMatrix)
-                    {
-                        actualTransitionMatrix.Pi[lastCapPos, capabilities.ParentCapabilities.Count]++;
+                        actualTransitionMatrix.Pi[lastCapPos, capPos]++;
                     }
+                    lastCapPos = capPos + matrixSizeCorrection;
+                    operationCount++;
+                } while (operationCount < article.Operations.Count);
+
+                if (transitionMatrixInput.ExtendedTransitionMatrix)
+                {
+                    actualTransitionMatrix.Pi[lastCapPos, capabilities.ParentCapabilities.Count]++;
                 }
             }
 

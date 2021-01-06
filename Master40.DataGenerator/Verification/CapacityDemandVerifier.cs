@@ -24,7 +24,7 @@ namespace Master40.DataGenerator.Verification
             var utilizationPerMachineGroup = new double[_machineGroupCount];
             foreach (var endProduct in productStructure.NodesPerLevel[0])
             {
-                var resultForEndProduct = CalculateCapacityDemandForArticle(endProduct.Value);
+                var resultForEndProduct = CalculateCapacityDemandForArticle(endProduct);
                 sumCapacity += resultForEndProduct.Item1;
                 for (var i = 0; i < utilizationPerMachineGroup.Length; i++)
                 {
@@ -33,7 +33,7 @@ namespace Master40.DataGenerator.Verification
             }
 
             var workingStationsArr = transitionMatrixInput.WorkingStations.ToArray();
-            var averageCapacityDemandPerEndProduct = sumCapacity / productStructure.NodesPerLevel[0].LongCount();
+            var averageCapacityDemandPerEndProduct = sumCapacity / productStructure.NodesPerLevel[0].Count;
             System.Diagnostics.Debug.WriteLine("################################# Actual average capacity demand per end product is " + averageCapacityDemandPerEndProduct);
             var utilizationSum = 0.0;
             for (var i = 0; i < utilizationPerMachineGroup.Length; i++)

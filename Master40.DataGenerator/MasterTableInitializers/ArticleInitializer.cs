@@ -9,29 +9,11 @@ namespace Master40.DataGenerator.MasterTableInitializers
 {
     public class ArticleInitializer
     {
-        public static void Init(List<Dictionary<long, Node>> nodesPerLevel, MasterDBContext context)
+        public static void Init(List<List<Node>> nodesPerLevel, MasterDBContext context)
         {
-            List<List<M_Article>> articles = new List<List<M_Article>>();
-            var currentList = new List<M_Article>();
-            articles.Add(currentList);
-            var counter = 0;
-            foreach (var article in nodesPerLevel.SelectMany(articleSet => articleSet.Values))
-            {
-                currentList.Add(article.Article);
-                counter++;
-                if (counter == Int32.MaxValue)
-                {
-                    currentList = new List<M_Article>();
-                    articles.Add(currentList);
-                    counter = 0;
-                }
-            }
-
-            foreach (var articleSet in articles)
-            {
-                context.Articles.AddRange(entities: articleSet);
-                context.SaveChanges();
-            }
+            var articles = nodesPerLevel.SelectMany(_ => _).Select(x => x.Article);
+            context.Articles.AddRange(entities: articles);
+            context.SaveChanges();
         }
     }
 }

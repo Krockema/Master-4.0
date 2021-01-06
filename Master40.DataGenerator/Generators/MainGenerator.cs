@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Master40.DataGenerator.DataModel;
 using Master40.DataGenerator.DataModel.ProductStructure;
 using Master40.DataGenerator.MasterTableInitializers;
-using Master40.DataGenerator.Util;
 using Master40.DataGenerator.Verification;
 using Master40.DB.Data.Context;
 using Master40.DB.Data.DynamicInitializer;
@@ -25,7 +25,7 @@ namespace Master40.DataGenerator.Generators
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
 
-            var rng = new XRandom(approach.Seed);
+            var rng = new Random(approach.Seed);
 
             var units = new MasterTableUnit();
             var unitCol = units.Init(dbContext);
