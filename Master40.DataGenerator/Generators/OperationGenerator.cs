@@ -34,7 +34,7 @@ namespace Master40.DataGenerator.Generators
                 var currentWorkingMachine = inputTransitionMatrix.ExtendedTransitionMatrix
                     ? DetermineNextWorkingMachine(0, rng)
                     : rng.Next(tools.Count);
-                var lastOperationReached = false;
+                bool lastOperationReached;
                 var operationCount = 0;
                 var correction = inputTransitionMatrix.ExtendedTransitionMatrix ? 1 : 0;
 
@@ -104,16 +104,16 @@ namespace Master40.DataGenerator.Generators
             _workingStations = inputTransitionMatrix.WorkingStations.ToArray();
             for (var i = 0; i < _matrixSize; i++)
             {
+                var individualMachiningTime = _workingStations[i].MachiningTimeParameterSet;
                 TruncatedDiscreteNormal truncatedDiscreteNormalDistribution;
-                if (unifyingDistribution != null)
+                if (individualMachiningTime == null)
                 {
                     truncatedDiscreteNormalDistribution = unifyingDistribution;
                 }
                 else
                 {
-                    var machiningTime = _workingStations[i].MachiningTimeParameterSet;
-                    var normalDistribution = Normal.WithMeanVariance(machiningTime.MeanMachiningTime,
-                        machiningTime.VarianceMachiningTime, rng);
+                    var normalDistribution = Normal.WithMeanVariance(individualMachiningTime.MeanMachiningTime,
+                        individualMachiningTime.VarianceMachiningTime, rng);
                     truncatedDiscreteNormalDistribution = new TruncatedDiscreteNormal(1, null, normalDistribution);
                 }
 

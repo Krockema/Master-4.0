@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Master40.DB.GeneratorModel
@@ -9,10 +10,16 @@ namespace Master40.DB.GeneratorModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public DateTime CreationDate { get; set; }
-        public int Seed { get; set; }
+        [Required]
+        public int? Seed { get; set; }
         public virtual ICollection<Simulation> Simulations { get; set; }
         public BillOfMaterialInput BomInput { get; set; }
         public ProductStructureInput ProductStructureInput { get; set; }
         public TransitionMatrixInput TransitionMatrixInput { get; set; }
+
+        public int GetSeed()
+        {
+            return Seed ?? 0;
+        }
     }
 }

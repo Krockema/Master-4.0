@@ -16,11 +16,11 @@ namespace Master40.DataGenerator.Generators
         // Wie könnte man Testen, ob der Algorithmus dem aus SYMTEP enspricht (keine Fehler enthält)
         public ProductStructure GenerateProductStructure(ProductStructureInput inputParameters,
             BillOfMaterialInput bomInput, MasterTableArticleType articleTypes, MasterTableUnit units, M_Unit[] unitCol,
-            Random rng)
+            Random rng, TransitionMatrixInput transitionMatrixParameters)
         {
             var productStructure = new ProductStructure();
             var availableNodes = new List<HashSet<int>>();
-            GenerateParts(inputParameters, productStructure, availableNodes, articleTypes, units, unitCol, rng);
+            GenerateParts(inputParameters, productStructure, availableNodes, articleTypes, units, unitCol, rng, transitionMatrixParameters);
 
             GenerateEdges(inputParameters, productStructure, rng, availableNodes);
 
@@ -70,22 +70,22 @@ namespace Master40.DataGenerator.Generators
             return pk;
         }
 
-        private void GenerateParts(ProductStructureInput inputParameters, ProductStructure productStructure,
+        private void GenerateParts(ProductStructureInput productStructureParameters, ProductStructure productStructure,
             List<HashSet<int>> availableNodes, MasterTableArticleType articleTypes, MasterTableUnit units,
-            M_Unit[] unitCol, Random rng)
+            M_Unit[] unitCol, Random rng, TransitionMatrixInput transitionMatrixParameters)
         {
-            bool sampleWorkPlanLength = inputParameters.MeanWorkPlanLength != null &&
-                                        inputParameters.VarianceWorkPlanLength != null;
+            bool sampleWorkPlanLength = transitionMatrixParameters.MeanWorkPlanLength != null &&
+                                        transitionMatrixParameters.VarianceWorkPlanLength != null;
             TruncatedDiscreteNormal truncatedDiscreteNormalDistribution = null;
             if (sampleWorkPlanLength)
             {
                 truncatedDiscreteNormalDistribution = new TruncatedDiscreteNormal(1, null,
-                    Normal.WithMeanVariance((double) inputParameters.MeanWorkPlanLength,
-                        (double) inputParameters.VarianceWorkPlanLength, rng));
+                    Normal.WithMeanVariance((double) transitionMatrixParameters.MeanWorkPlanLength,
+                        (double) transitionMatrixParameters.VarianceWorkPlanLength, rng));
             }
-            for (var i = 1; i <= inputParameters.DepthOfAssembly; i++)
+            for (var i = 1; i <= productStructureParameters.DepthOfAssembly; i++)
             {
-                productStructure.NodesCounter += GeneratePartsForEachLevel(inputParameters, productStructure,
+                productStructure.NodesCounter += GeneratePartsForEachLevel(productStructureParameters, productStructure,
                     availableNodes, articleTypes, units, unitCol, rng, i, sampleWorkPlanLength,
                     truncatedDiscreteNormalDistribution);
             }
@@ -351,7 +351,7 @@ namespace Master40.DataGenerator.Generators
             BillOfMaterialInput bomInput, ProductStructure productStructure, MasterTableUnit units, Random rng)
         {
             var logNormalDistribution = LogNormal.WithMeanVariance(inputParameters.MeanIncomingMaterialAmount,
-                Math.Pow(inputParameters.StdDevIncomingMaterialAmount, 2), rng);
+                inputParameters.VarianceIncomingMaterialAmount, rng);
             var edgeWeightRoundModes = new DataGeneratorTableEdgeWeightRoundMode();
             foreach (var edge in productStructure.Edges)
             {

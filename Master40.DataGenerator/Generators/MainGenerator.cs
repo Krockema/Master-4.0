@@ -25,7 +25,7 @@ namespace Master40.DataGenerator.Generators
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
 
-            var rng = new Random(approach.Seed);
+            var rng = new Random(approach.GetSeed());
 
             var units = new MasterTableUnit();
             var unitCol = units.Init(dbContext);
@@ -34,7 +34,7 @@ namespace Master40.DataGenerator.Generators
 
             var productStructureGenerator = new ProductStructureGenerator();
             ProductStructur = productStructureGenerator.GenerateProductStructure(approach.ProductStructureInput,
-                approach.BomInput, articleTypes, units, unitCol, rng);
+                approach.BomInput, articleTypes, units, unitCol, rng, approach.TransitionMatrixInput);
             ArticleInitializer.Init(ProductStructur.NodesPerLevel, dbContext);
 
             var articleTable = dbContext.Articles.ToArray();

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Master40.DB.Data.Context;
 using Master40.DB.GeneratorModel;
 
@@ -34,6 +35,15 @@ namespace Master40.DB.Data.Initializer.Tables
 
             ctx.TransitionMatrixSettingOptions.AddRange(options);
             ctx.SaveChanges();
+        }
+
+        public List<TransitionMatrixSettingOption> AsList()
+        {
+            return new List<TransitionMatrixSettingOption>
+            {
+                BALANCED_PI_B_INIT,
+                BALANCED_PI_A_INIT
+            };
         }
     }
 }
