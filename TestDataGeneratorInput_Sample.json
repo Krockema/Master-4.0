@@ -1,32 +1,32 @@
-[ // es können mehrere Eingabeparameter-Sets definiert werden, da es sich um ein Array handelt
+ï»¿[ // es kÃ¶nnen mehrere Eingabeparameter-Sets definiert werden, da es sich um ein Array handelt
   {
-    "Seed": null, //Angabe des Seeds: entweder ein konkreter ganzzahliger Wert oder null (wobei bei null ein zufälliger Seed bestimmt wird)
+    "PresetSeed": null, //Angabe des Seeds: entweder ein konkreter ganzzahliger Wert oder null (wobei bei null ein zufÃ¤lliger Seed bestimmt wird)
     "ProductStructureInput": {
       "EndProductCount": 30, //Anhzahl der Endprodukte
-      "DepthOfAssembly": 4, //Fertigungstiefe; kann u.U. im Nachhinein vom System verändert werden, wenn erforderlich
+      "DepthOfAssembly": 4, //Fertigungstiefe; kann u.U. im Nachhinein vom System verÃ¤ndert werden, wenn erforderlich
       "ReutilisationRatio": 4.0, //Mehrfachverwendungsgrad (darf nicht kleiner 1 sein)
-      "ComplexityRatio": 2.0, //Komplexitätsgrad (darf nicht kleiner 1 sein)
-      "MeanIncomingMaterialAmount": 1.0, //Mittelwert des zu generierenden Kantengewichtes (Menge eines Artikels in der BOM, die benötigt wird, um einen anderen Artikel herzustellen)
+      "ComplexityRatio": 2.0, //KomplexitÃ¤tsgrad (darf nicht kleiner 1 sein)
+      "MeanIncomingMaterialAmount": 1.0, //Mittelwert des zu generierenden Kantengewichtes (Menge eines Artikels in der BOM, die benÃ¶tigt wird, um einen anderen Artikel herzustellen)
       "VarianceIncomingMaterialAmount": 0.0 //Varianz des zu generierenden Kantengewichtes
     },
     "TransitionMatrixInput": {
-      "DegreeOfOrganization": 1.0, //Organisationsgrad (muss einschließlich zwischen 0 und 1 liegen); kann u.U. im Nachhinein vom System verändert werden, wenn erforderlich
-      "Lambda": 1.0, //Lambda für Poisson-Verteilung; wird bei der Initialisierung der Matrix Pi_A verwendet
-      "ExtendedTransitionMatrix": true, //false: normale Übergangsmatrix (Mean-/VarianceWorkPlanLength müssen angegeben werden!); true: die Anzahl der Arbeitsgänge pro Arbeitsplan wird mithilfe der Übergangsmatrix bestimmt
-      "InfiniteTools": true, //jede Maschine hat ihre eigenen Werkzeuge (werden nicht mit anderen Maschinen geteilt); !!! wird z.Z. im System nirgends angewendet !!! -> für System immer true, unabhängig vom hier angegebenen Wert
-      "MeanWorkPlanLength": 4.0, //Mitelwert der zu generierenden Anzahl an Arbeitsgängen pro Arbeitsplan; darf nicht null sein, wenn ExtendedTransitionMatrix = false
-      "VarianceWorkPlanLength": 0.0, //Varianz der zu generierenden Anzahl an Arbeitsgängen pro Arbeitsplan;  darf nicht null sein, wenn ExtendedTransitionMatrix = false
-      "GeneralMachiningTimeParameterSet": { //wenn dieser Wert nicht null ist, gilt der hier für die Generierung der Bearbeitungszeiten angegebene Mittelwert und Varianz für jede Maschinengruppe, für die keine individuellen Bearbeitungszeiten generiert werden
+      "DegreeOfOrganization": 1.0, //Organisationsgrad (muss einschlieÃŸlich zwischen 0 und 1 liegen); kann u.U. im Nachhinein vom System verÃ¤ndert werden, wenn erforderlich
+      "Lambda": 1.0, //Lambda fÃ¼r Poisson-Verteilung; wird bei der Initialisierung der Matrix Pi_A verwendet
+      "ExtendedTransitionMatrix": true, //false: normale Ãœbergangsmatrix (Mean-/VarianceWorkPlanLength mÃ¼ssen angegeben werden!); true: die Anzahl der ArbeitsgÃ¤nge pro Arbeitsplan wird mithilfe der Ãœbergangsmatrix bestimmt
+      "InfiniteTools": true, //jede Maschine hat ihre eigenen Werkzeuge (werden nicht mit anderen Maschinen geteilt); !!! wird z.Z. im System nirgends angewendet !!! -> fÃ¼r System immer true, unabhÃ¤ngig vom hier angegebenen Wert
+      "MeanWorkPlanLength": 4.0, //Mitelwert der zu generierenden Anzahl an ArbeitsgÃ¤ngen pro Arbeitsplan; darf nicht null sein, wenn ExtendedTransitionMatrix = false
+      "VarianceWorkPlanLength": 0.0, //Varianz der zu generierenden Anzahl an ArbeitsgÃ¤ngen pro Arbeitsplan;  darf nicht null sein, wenn ExtendedTransitionMatrix = false
+      "GeneralMachiningTimeParameterSet": { //wenn dieser Wert nicht null ist, gilt der hier fÃ¼r die Generierung der Bearbeitungszeiten angegebene Mittelwert und Varianz fÃ¼r jede Maschinengruppe, fÃ¼r die keine individuellen Bearbeitungszeiten generiert werden
         "MeanMachiningTime": 10.0,
         "VarianceMachiningTime": 2.0
       },
-      "WorkingStations": [ //Maschinengruppen; Anzahl an unterschiedlichen Maschinengruppen ergibt sich aus Länge des Arrays
+      "WorkingStations": [ //Maschinengruppen; Anzahl an unterschiedlichen Maschinengruppen ergibt sich aus LÃ¤nge des Arrays
         {
           "ToolCount": 8, //Anzahl verschiedener Werkzeuge einer Maschine dieser Maschinengruppe
-          "ResourceCount": 4, //Anzahl der tatsächlichen Maschinen, die dieser Maschinengruppe angehören
-          "SetupTime": 32, //Rüstzeit für jede Maschinen dieser Gruppe
+          "ResourceCount": 4, //Anzahl der tatsÃ¤chlichen Maschinen, die dieser Maschinengruppe angehÃ¶ren
+          "SetupTime": 32, //RÃ¼stzeit fÃ¼r jede Maschinen dieser Gruppe
           "OperatorCount": 0,
-          "MachiningTimeParameterSet": { //Angabe des Mittelwertes und der Varianz zur Generierung von individuellen Bearbeitungszeiten für Maschinen dieser Gruppe; falls nicht null und GeneralMachiningTimeParameterSet auch nicht null: individuell überschreibt allgemein; falls dieser Wert bei mindestens einem der Maschinengruppen null ist, so darf GeneralMachiningTimeParameterSet nicht null sein
+          "MachiningTimeParameterSet": { //Angabe des Mittelwertes und der Varianz zur Generierung von individuellen Bearbeitungszeiten fÃ¼r Maschinen dieser Gruppe; falls nicht null und GeneralMachiningTimeParameterSet auch nicht null: individuell Ã¼berschreibt allgemein; falls dieser Wert bei mindestens einem der Maschinengruppen null ist, so darf GeneralMachiningTimeParameterSet nicht null sein
             "MeanMachiningTime": 16.0,
             "VarianceMachiningTime": 0.0
           }
@@ -62,7 +62,7 @@
           }
         }
       ],
-      "SettingConfiguration": [ //zusätzliche Konfigurationen bezüglich der Übergangsmatrix; einzelne Array-Objekte können weggelassen werden - im System ist für jede Option ein Standardwert definiert, der verwendet wird, wenn keine explizite Angabe stattfindet
+      "SettingConfiguration": [ //zusÃ¤tzliche Konfigurationen bezÃ¼glich der Ãœbergangsmatrix; einzelne Array-Objekte kÃ¶nnen weggelassen werden - im System ist fÃ¼r jede Option ein Standardwert definiert, der verwendet wird, wenn keine explizite Angabe stattfindet
         {
           "SettingValue": 1.0, //Wert ist vom Typ double, kann aber auch als boolean oder integer interpretiert werden, je nach dem um welche Option es sich handelt
           "SettingOption": {
@@ -78,14 +78,14 @@
       ]
     },
     "BomInput": {
-      "WeightEpsilon": 0.001, //Angabe des minimalen Kantengewichtes (siehe ***IncomingMaterialAmount); da als Zufallszahl 0 generiert werden kann, dies aber als Kantengewicht verboten ist, wird einer untere Grenze benötigt
+      "WeightEpsilon": 0.001, //Angabe des minimalen Kantengewichtes (siehe ***IncomingMaterialAmount); da als Zufallszahl 0 generiert werden kann, dies aber als Kantengewicht verboten ist, wird einer untere Grenze benÃ¶tigt
       "EdgeWeightRoundMode": {
         "Name": "always round" //Festlegung der Rundungsbetriebsart durch den Namen; folgende Namen sind nutzbar: "always round", "never round" und "round only if it makes sense"
       }
     }
   },
   {
-    "Seed": null,
+    "PresetSeed": null,
     "ProductStructureInput": {
       "EndProductCount": 300,
       "DepthOfAssembly": 4,

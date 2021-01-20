@@ -25,6 +25,7 @@ namespace Master40.DataGenerator.Verification
             foreach (var endProduct in productStructure.NodesPerLevel[0])
             {
                 var resultForEndProduct = CalculateCapacityDemandForArticle(endProduct);
+                System.Diagnostics.Debug.WriteLine("Endprodukt " + endProduct.Article.Name + ": " + resultForEndProduct);
                 sumCapacity += resultForEndProduct.Item1;
                 for (var i = 0; i < utilizationPerMachineGroup.Length; i++)
                 {

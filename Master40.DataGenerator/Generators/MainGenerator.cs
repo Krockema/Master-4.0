@@ -25,7 +25,7 @@ namespace Master40.DataGenerator.Generators
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
 
-            var rng = new Random(approach.GetSeed());
+            var rng = new Random(approach.Seed);
 
             var units = new MasterTableUnit();
             var unitCol = units.Init(dbContext);

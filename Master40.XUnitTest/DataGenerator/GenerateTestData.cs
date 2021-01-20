@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Master40.DataGenerator.Generators;
 using Master40.DataGenerator.Repository;
 using Master40.DataGenerator.Util;
@@ -12,6 +13,8 @@ using Master40.DB.GeneratorModel;
 using Master40.DB.Util;
 using MathNet.Numerics.Distributions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Schema;
+using Newtonsoft.Json.Schema.Generation;
 using Xunit;
 
 namespace Master40.XUnitTest.DataGenerator
@@ -26,26 +29,34 @@ namespace Master40.XUnitTest.DataGenerator
         [Fact]
         public void SetInputViaJsonFile()
         {
-            string jsonFileContent = "";
-            try
+            var jsonFileContent = File.ReadAllText(pathToJsonFile);
+
+            var generator = new JSchemaGenerator();
+            var schema = generator.Generate(typeof(List<Approach>));
+            var reader = new JsonTextReader(new StringReader(jsonFileContent));
+            var validatingReader = new JSchemaValidatingReader(reader)
             {
-                StreamReader sr = new StreamReader(pathToJsonFile);
-                var line = sr.ReadLine();
-                //Continue to read until you reach end of file
-                while (line != null)
-                {
-                    jsonFileContent += line + "\n";
-                    line = sr.ReadLine();
-                }
-                sr.Close();
+                Schema = schema
+            };
+            var messages = new List<string>();
+            validatingReader.ValidationEventHandler += (o, a) => messages.Add(a.Message);
+            var serializer = new JsonSerializer
+            {
+                MissingMemberHandling = MissingMemberHandling.Error
+            };
+            var approaches = serializer.Deserialize<List<Approach>>(validatingReader);
+            if (messages.Count > 0)
+            {
+                throw new Exception(messages[0]);
             }
-            catch (Exception e)
+            approaches.RemoveAll(_ => _ == null);
+            if (approaches.Count == 0)
             {
-                System.Diagnostics.Debug.WriteLine("Exception: " + e);
+                throw new Exception("Approaches array must not have 0 (not null) elements");
             }
 
-            var approaches = JsonConvert.DeserializeObject<List<Approach>>(jsonFileContent);
             var success = true;
+            var generatorDbCtx = DataGeneratorContext.GetContext(testGeneratorCtxString);
             foreach (var approach in approaches)
             {
                 var presetConf =
@@ -63,17 +74,21 @@ namespace Master40.XUnitTest.DataGenerator
                     }
                 }
 
-                var generatorDbCtx = DataGeneratorContext.GetContext(testGeneratorCtxString);
-
                 var edgeWeightRoundMode = DataGeneratorTableEdgeWeightRoundMode.GetEdgeWeightRoundModeByName(
                     generatorDbCtx,
                     approach.BomInput.EdgeWeightRoundMode.Name);
+                if (edgeWeightRoundMode == null)
+                {
+                    throw new Exception("There is no edge weight round mode with the name \"" +
+                                        approach.BomInput.EdgeWeightRoundMode.Name + "\" in the system");
+                }
                 approach.BomInput.EdgeWeightRoundMode = null;
                 approach.BomInput.EdgeWeightRoundModeId = edgeWeightRoundMode.Id;
 
-                success &= checkValidateAndSafeInput(approach, generatorDbCtx);
+                success &= checkAndValidateInput(approach, generatorDbCtx);
             }
 
+            safeInput(generatorDbCtx, success, approaches);
             Assert.True(success);
         }
 
@@ -81,16 +96,21 @@ namespace Master40.XUnitTest.DataGenerator
         [Fact]
         public void SetInput()
         {
-            var success = true;
             var iterations = 1;
+
+            var success = true;
+            var generatorDbCtx = DataGeneratorContext.GetContext(testGeneratorCtxString);
+            var createdApproaches = new List<Approach>();
+            var edgeWeightRoundModes = new DataGeneratorTableEdgeWeightRoundMode();
+            edgeWeightRoundModes.Load(generatorDbCtx);
 
             for (var i = 0; i < iterations; i++)
             {
-                var generatorDbCtx = DataGeneratorContext.GetContext(testGeneratorCtxString);
                 var approach = new Approach()
                 {
-                    Seed = null
+                    PresetSeed = null
                 };
+                createdApproaches.Add(approach);
 
                 //Nebenbedingung lautet, dass Fertigungstiefe mindestens 1 sein muss, es macht aber wenig Sinn, wenn sie gleich 1 ist, da es dann keine Fertigungen gibt
                 //-> Anpassung der Nebenbedingung: Fertigungstiefe muss mindestens 2 sein
@@ -179,25 +199,24 @@ namespace Master40.XUnitTest.DataGenerator
                 transitionMatrixSettings.BALANCED_PI_A_INIT.SettingValue = 1.0;
                 approach.TransitionMatrixInput.SettingConfiguration = transitionMatrixSettings.AsList();
 
-                var edgeWeightRoundModes = new DataGeneratorTableEdgeWeightRoundMode();
-                edgeWeightRoundModes.Load(generatorDbCtx);
                 approach.BomInput = new BillOfMaterialInput
                 {
                     EdgeWeightRoundModeId = edgeWeightRoundModes.ROUND_ALWAYS.Id,
                     WeightEpsilon = 0.001
                 };
 
-                success &= checkValidateAndSafeInput(approach, generatorDbCtx);
+                success &= checkAndValidateInput(approach, generatorDbCtx);
             }
 
+            safeInput(generatorDbCtx, success, createdApproaches);
             Assert.True(success);
         }
 
-        private bool checkValidateAndSafeInput(Approach approach, DataGeneratorContext generatorDbCtx)
+        private bool checkAndValidateInput(Approach approach, DataGeneratorContext generatorDbCtx)
         {
             if (ProductStructureGenerator.DeterminateMaxDepthOfAssemblyAndCheckLimit(approach.ProductStructureInput))
             {
-                approach.Seed ??= new Random().Next();
+                approach.Seed = approach.PresetSeed ?? new Random().Next();
                 approach.CreationDate = DateTime.Now;
 
                 var minPossibleOG = TransitionMatrixGenerator.CalcMinPossibleDegreeOfOrganization(
@@ -207,35 +226,45 @@ namespace Master40.XUnitTest.DataGenerator
                     approach.TransitionMatrixInput.DegreeOfOrganization);
 
                 generatorDbCtx.Approaches.AddRange(approach);
-                generatorDbCtx.SaveChanges();
-
-                System.Diagnostics.Debug.WriteLine(
-                    "################################# Generated test data have the approach id of " + approach.Id);
                 return true;
             }
-            System.Diagnostics.Debug.WriteLine(
-                "################################# Eingaben für Erzeugnisstruktur waren ungültig!");
             return false;
         }
 
+        private void safeInput(DataGeneratorContext generatorDbCtx, bool success, List<Approach> approaches)
+        {
+            if (success)
+            {
+                generatorDbCtx.SaveChanges();
+                var generatedIds = string.Join(", ", approaches.Select(x => x.Id));
+                System.Diagnostics.Debug.WriteLine(
+                    "################################# Generated test data have the following approach ids: " +
+                    generatedIds);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("################################# Input was not valid!");
+            }
+        }
+
         [Fact]
-        public void exportInputParametersToJsonFile()
+        public void ExportInputParametersToJsonFile()
         {
             int approachId = 2;
 
             var generatorDbCtx = DataGeneratorContext.GetContext(testGeneratorCtxString);
             var approach = ApproachRepository.GetApproachById(generatorDbCtx, approachId);
             var jsonOutput = JsonConvert.SerializeObject(approach);
-            try
-            {
-                StreamWriter sw = new StreamWriter(pathToJsonFile);
-                sw.WriteLine(jsonOutput);
-                sw.Close();
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine("Exception: " + e);
-            }
+            File.WriteAllText(pathToJsonFile, jsonOutput);
+            Assert.True(true);
+        }
+
+        [Fact]
+        public void ExportSchemaForJsonFile()
+        {
+            JSchemaGenerator generator = new JSchemaGenerator();
+            JSchema schema = generator.Generate(typeof(List<Approach>));
+            System.Diagnostics.Debug.WriteLine(schema.ToString(new JSchemaWriterSettings()));
             Assert.True(true);
         }
 
