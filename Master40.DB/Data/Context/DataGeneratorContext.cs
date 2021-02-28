@@ -32,7 +32,8 @@ namespace Master40.DB.Data.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Approach>()
-                .ToTable("Approach");
+                .ToTable("Approach")
+                .HasCheckConstraint("TransitionMatrixInput_CK_ResourcesData", "(UseExistingResourcesData = 0 AND ResourcesDataHash IS NULL) OR (UseExistingResourcesData = 1 AND ResourcesDataHash IS NOT NULL)");
             modelBuilder.Entity<Simulation>()
                 .ToTable("Simulation")
                 .HasOne(sim => sim.Approach)

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.Serialization;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Master40.DB.GeneratorModel
@@ -24,6 +25,12 @@ namespace Master40.DB.GeneratorModel
         [Range(0, int.MaxValue)]
         [JsonProperty(Required = Required.AllowNull)]
         public int? PresetSeed { get; set; }
+
+        [JsonProperty(Required = Required.Always)]
+        public bool UseExistingResourcesData { get; set; }
+
+        [CanBeNull]
+        public string ResourcesDataHash { get; set; }
 
         [JsonIgnore]
         public virtual ICollection<Simulation> Simulations { get; set; }
@@ -50,9 +57,13 @@ namespace Master40.DB.GeneratorModel
                 throw new Exception("Elements of TransitionMatrixInput.SettingConfiguration must not be null");
             }
 
-            if (TransitionMatrixInput.WorkingStations.Count(x => x.MachiningTimeParameterSet == null) > 0 &&
-                TransitionMatrixInput.GeneralMachiningTimeParameterSet == null)
+            if ((TransitionMatrixInput.WorkingStations.Count(x => x.MachiningTimeParameterSet == null) > 0 ||
+                 UseExistingResourcesData) && TransitionMatrixInput.GeneralMachiningTimeParameterSet == null)
             {
+                if (UseExistingResourcesData)
+                {
+                    throw new Exception("You need to set a general machining time as a backup to use existing resources data in case these parameters aren't provided there");
+                }
                 throw new Exception(
                     "You need to set an individual machining time for each working station or set a general machining time");
             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using Master40.DataGenerator.Generators;
 using Master40.DataGenerator.Repository;
@@ -9,6 +10,7 @@ using Master40.DataGenerator.Util;
 using Master40.DataGenerator.Verification;
 using Master40.DB.Data.Context;
 using Master40.DB.Data.Initializer.Tables;
+using Master40.DB.DataModel;
 using Master40.DB.GeneratorModel;
 using Master40.DB.Util;
 using MathNet.Numerics.Distributions;
@@ -108,7 +110,8 @@ namespace Master40.XUnitTest.DataGenerator
             {
                 var approach = new Approach()
                 {
-                    PresetSeed = null
+                    PresetSeed = null,
+                    UseExistingResourcesData = true
                 };
                 createdApproaches.Add(approach);
 
@@ -132,15 +135,16 @@ namespace Master40.XUnitTest.DataGenerator
                 var individualMachiningTime = true;
                 double? doubleNull = null;
                 var extendedTransitionMatrix = false;
+                var createIndividualMachiningTime = individualMachiningTime && !approach.UseExistingResourcesData;
                 approach.TransitionMatrixInput = new TransitionMatrixInput
                 {
-                    DegreeOfOrganization = 1.0,
+                    DegreeOfOrganization = 0,
                     Lambda = 1.0,
                     InfiniteTools = true,
                     ExtendedTransitionMatrix = extendedTransitionMatrix,
                     MeanWorkPlanLength = extendedTransitionMatrix ? doubleNull : 4.0,
                     VarianceWorkPlanLength = extendedTransitionMatrix ? doubleNull : 0.0,
-                    GeneralMachiningTimeParameterSet = individualMachiningTime ? null : new MachiningTimeParameterSet
+                    GeneralMachiningTimeParameterSet = createIndividualMachiningTime ? null : new MachiningTimeParameterSet
                     {
                         MeanMachiningTime = 10,
                         VarianceMachiningTime = 0
@@ -149,7 +153,7 @@ namespace Master40.XUnitTest.DataGenerator
                     {
                         new WorkingStationParameterSet()
                         {
-                            MachiningTimeParameterSet = !individualMachiningTime ? null : new MachiningTimeParameterSet
+                            MachiningTimeParameterSet = !createIndividualMachiningTime ? null : new MachiningTimeParameterSet
                             {
                                 MeanMachiningTime = 16, VarianceMachiningTime = 0.0
                             },
@@ -160,7 +164,7 @@ namespace Master40.XUnitTest.DataGenerator
                         },
                         new WorkingStationParameterSet()
                         {
-                            MachiningTimeParameterSet = !individualMachiningTime ? null : new MachiningTimeParameterSet
+                            MachiningTimeParameterSet = !createIndividualMachiningTime ? null : new MachiningTimeParameterSet
                             {
                                 MeanMachiningTime = 12, VarianceMachiningTime = 0.0
                             },
@@ -171,7 +175,7 @@ namespace Master40.XUnitTest.DataGenerator
                         },
                         new WorkingStationParameterSet()
                         {
-                            MachiningTimeParameterSet = !individualMachiningTime ? null : new MachiningTimeParameterSet
+                            MachiningTimeParameterSet = !createIndividualMachiningTime ? null : new MachiningTimeParameterSet
                             {
                                 MeanMachiningTime = 20, VarianceMachiningTime = 0.0
                             },
@@ -182,7 +186,7 @@ namespace Master40.XUnitTest.DataGenerator
                         },
                         new WorkingStationParameterSet()
                         {
-                            MachiningTimeParameterSet = !individualMachiningTime ? null : new MachiningTimeParameterSet
+                            MachiningTimeParameterSet = !createIndividualMachiningTime ? null : new MachiningTimeParameterSet
                             {
                                 MeanMachiningTime = 8, VarianceMachiningTime = 0.0
                             },
@@ -214,13 +218,33 @@ namespace Master40.XUnitTest.DataGenerator
 
         private bool checkAndValidateInput(Approach approach, DataGeneratorContext generatorDbCtx)
         {
+            int capabilitiesCount;
+            if (approach.UseExistingResourcesData)
+            {
+                var ctx = MasterDBContext.GetContext(testCtxString);
+                approach.TransitionMatrixInput.WorkingStations.Clear();
+                capabilitiesCount = ResourceCapabilityRepository.GetParentResourceCapabilitiesCount(ctx);
+                if (capabilitiesCount == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "################################# No resource data found although required");
+                    return false;
+                }
+                var resourcesData = ResourceSetupRepository.GetAllResourceSetups(ctx);
+                var jsonOutput = JsonConvert.SerializeObject(resourcesData);
+                approach.ResourcesDataHash = Sha256Hasher.ComputeSha256Hash(jsonOutput);
+            }
+            else
+            {
+                capabilitiesCount = approach.TransitionMatrixInput.WorkingStations.Count;
+            }
+
             if (ProductStructureGenerator.DeterminateMaxDepthOfAssemblyAndCheckLimit(approach.ProductStructureInput))
             {
                 approach.Seed = approach.PresetSeed ?? new Random().Next();
                 approach.CreationDate = DateTime.Now;
 
-                var minPossibleOG = TransitionMatrixGenerator.CalcMinPossibleDegreeOfOrganization(
-                    approach.TransitionMatrixInput.WorkingStations.Count,
+                var minPossibleOG = TransitionMatrixGenerator.CalcMinPossibleDegreeOfOrganization(capabilitiesCount,
                     approach.TransitionMatrixInput.ExtendedTransitionMatrix);
                 approach.TransitionMatrixInput.DegreeOfOrganization = Math.Max(minPossibleOG,
                     approach.TransitionMatrixInput.DegreeOfOrganization);
@@ -374,6 +398,26 @@ namespace Master40.XUnitTest.DataGenerator
             list1.Add(truncatedDiscreteNormalDistribution);
             list1.Add(truncatedDiscreteNormalDistribution);
             var x5 = list1[1].Sample();
+
+            var resource = new M_Resource() { Id = 1 };
+            var cap1 = new M_ResourceCapability() { Id = 1 };
+            var cap2 = new M_ResourceCapability() { Id = 2 };
+            var cap3 = new M_ResourceCapability() { Id = 2 };
+            var areEqual1 = resource.Equals(cap1);
+            var areEqual2 = cap1.Equals(cap2);
+            var areEqual3 = cap2.Equals(cap3);
+
+            Assert.True(true);
+        }
+
+        [Fact]
+        public void Test2()
+        {
+            GlobalMasterRepository.DeleteAllButResourceData(MasterDBContext.GetContext(testCtxString));
+
+            var masterData = ResourceSetupRepository.GetAllResourceSetups(MasterDBContext.GetContext(testCtxString));
+            var jsonOutput = JsonConvert.SerializeObject(masterData);
+            File.WriteAllText(pathToJsonFile, jsonOutput);
 
             Assert.True(true);
         }

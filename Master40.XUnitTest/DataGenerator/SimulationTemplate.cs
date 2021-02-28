@@ -195,77 +195,82 @@ namespace Master40.XUnitTest.DataGenerator
 
             var approach = ApproachRepository.GetApproachById(dataGenCtx, approachId);
             var generator = new MainGenerator();
-            await Task.Run(() =>
+            var testDataGenerated = await Task.Run(() =>
                 generator.StartGeneration(approach, masterCtx));
 
-            var simContext = new AgentSimulation(DBContext: masterCtx, messageHub: new ConsoleHub());
-            var simConfig = ArgumentConverter.ConfigurationConverter(ctxResult, 1);
-
-            //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Trace, LogLevel.Trace);
-            LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Info, LogLevel.Info);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Debug, LogLevel.Debug);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PRIORITY, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.SCHEDULING, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.DISPOPRODRELATION, LogLevel.Debug, LogLevel.Debug);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PROPOSAL, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.INITIALIZE, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOB, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.ENQUEUE, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOBSTATE, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, TargetNames.LOG_AKKA, LogLevel.Trace, LogLevel.Trace);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AKKA, LogLevel.Warn);
-
-            var dataGenSim = new DB.GeneratorModel.Simulation();
-            dataGenSim.ApproachId = approachId;
-            dataGenSim.StartTime = DateTime.Now;
-            await Task.Run(() =>
+            if (testDataGenerated)
             {
-                dataGenCtx.Simulations.AddRange(dataGenSim);
-                dataGenCtx.SaveChanges();
-            });
 
-            if (seed == null)
-            {
-                seed = new Random().Next();
-            }
+                var simContext = new AgentSimulation(DBContext: masterCtx, messageHub: new ConsoleHub());
+                var simConfig = ArgumentConverter.ConfigurationConverter(ctxResult, 1);
 
-            // update customized Configuration
-            simConfig.AddOption(new DBConnectionString(testResultCtxString));  
-            simConfig.ReplaceOption(new TimeConstraintQueueLength(480));
-            simConfig.ReplaceOption(new OrderArrivalRate(value: arrivalRate));
-            simConfig.ReplaceOption(new OrderQuantity(value: orderQuantity)); 
-            simConfig.ReplaceOption(new EstimatedThroughPut(value: throughput));
-            simConfig.ReplaceOption(new TimePeriodForThroughputCalculation(value: 2880));
-            simConfig.ReplaceOption(new Seed(value: (int) seed));
-            simConfig.ReplaceOption(new SettlingStart(value: 0)); 
-            simConfig.ReplaceOption(new SimulationEnd(value: simulationEnd));
-            simConfig.ReplaceOption(new SaveToDB(value: true));
-            simConfig.ReplaceOption(new MaxBucketSize(value: maxBucketSize));
-            simConfig.ReplaceOption(new SimulationNumber(value: dataGenSim.Id));
-            simConfig.ReplaceOption(new DebugSystem(value: true));
-            simConfig.ReplaceOption(new WorkTimeDeviation(0.0));
-            // anpassen der Lieferzeiten anhand der Erwarteten Durchlaufzeit. 
-            simConfig.ReplaceOption(new MinDeliveryTime(value: minDeliveryTime));
-            simConfig.ReplaceOption(new MaxDeliveryTime(value: maxDeliveryTime));
+                //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Trace, LogLevel.Trace);
+                LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Info, LogLevel.Info);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Debug, LogLevel.Debug);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PRIORITY, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.SCHEDULING, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.DISPOPRODRELATION, LogLevel.Debug, LogLevel.Debug);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PROPOSAL, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.INITIALIZE, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOB, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.ENQUEUE, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOBSTATE, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, TargetNames.LOG_AKKA, LogLevel.Trace, LogLevel.Trace);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AKKA, LogLevel.Warn);
 
-            await Task.Run(() => 
-                ArgumentConverter.ConvertBackAndSave(ctxResult, simConfig, dataGenSim.Id));
-
-            var simulation = await simContext.InitializeSimulation(configuration: simConfig);
-
-            
-            if (simulation.IsReady())
-            {
-                // Start simulation
-                var sim = simulation.RunAsync();
-                simContext.StateManager.ContinueExecution(simulation);
-                await sim;
-                dataGenSim.FinishTime = DateTime.Now;
-                dataGenSim.FinishedSuccessfully = sim.IsCompletedSuccessfully;
+                var dataGenSim = new DB.GeneratorModel.Simulation();
+                dataGenSim.ApproachId = approachId;
+                dataGenSim.StartTime = DateTime.Now;
                 await Task.Run(() =>
+                {
+                    dataGenCtx.Simulations.AddRange(dataGenSim);
+                    dataGenCtx.SaveChanges();
+                });
+
+                if (seed == null)
+                {
+                    seed = new Random().Next();
+                }
+
+                // update customized Configuration
+                simConfig.AddOption(new DBConnectionString(testResultCtxString));
+                simConfig.ReplaceOption(new TimeConstraintQueueLength(480));
+                simConfig.ReplaceOption(new OrderArrivalRate(value: arrivalRate));
+                simConfig.ReplaceOption(new OrderQuantity(value: orderQuantity));
+                simConfig.ReplaceOption(new EstimatedThroughPut(value: throughput));
+                simConfig.ReplaceOption(new TimePeriodForThroughputCalculation(value: 2880));
+                simConfig.ReplaceOption(new Seed(value: (int) seed));
+                simConfig.ReplaceOption(new SettlingStart(value: 0));
+                simConfig.ReplaceOption(new SimulationEnd(value: simulationEnd));
+                simConfig.ReplaceOption(new SaveToDB(value: true));
+                simConfig.ReplaceOption(new MaxBucketSize(value: maxBucketSize));
+                simConfig.ReplaceOption(new SimulationNumber(value: dataGenSim.Id));
+                simConfig.ReplaceOption(new DebugSystem(value: true));
+                simConfig.ReplaceOption(new WorkTimeDeviation(0.0));
+                // anpassen der Lieferzeiten anhand der Erwarteten Durchlaufzeit. 
+                simConfig.ReplaceOption(new MinDeliveryTime(value: minDeliveryTime));
+                simConfig.ReplaceOption(new MaxDeliveryTime(value: maxDeliveryTime));
+
+                await Task.Run(() =>
+                    ArgumentConverter.ConvertBackAndSave(ctxResult, simConfig, dataGenSim.Id));
+
+                var simulation = await simContext.InitializeSimulation(configuration: simConfig);
+
+
+                if (simulation.IsReady())
+                {
+                    // Start simulation
+                    var sim = simulation.RunAsync();
+                    simContext.StateManager.ContinueExecution(simulation);
+                    await sim;
+                    dataGenSim.FinishTime = DateTime.Now;
+                    dataGenSim.FinishedSuccessfully = sim.IsCompletedSuccessfully;
+                    await Task.Run(() =>
                         dataGenCtx.SaveChanges());
-                System.Diagnostics.Debug.WriteLine("################################# Simulation has finished with number " + dataGenSim.Id);
-                Assert.True(condition: sim.IsCompleted);
+                    System.Diagnostics.Debug.WriteLine(
+                        "################################# Simulation has finished with number " + dataGenSim.Id);
+                    Assert.True(condition: sim.IsCompleted);
+                }
             }
         }
 

@@ -63,8 +63,11 @@ namespace Master40.DB
 
         public override bool Equals(object obj)
         {
-            BaseEntity other = (BaseEntity)obj;
-            return Id.Equals(other.Id);
+            if (obj is BaseEntity other)
+            {
+                return GetType() == other.GetType() && Id.Equals(other.Id);
+            }
+            return false;
         }
 
         public override int GetHashCode()

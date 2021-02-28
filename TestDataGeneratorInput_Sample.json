@@ -1,6 +1,7 @@
 ﻿[ // es können mehrere Eingabeparameter-Sets definiert werden, da es sich um ein Array handelt
   {
     "PresetSeed": null, //Angabe des Seeds: entweder ein konkreter ganzzahliger Wert oder null (wobei bei null ein zufälliger Seed bestimmt wird)
+    "UseExistingResourcesData": false, //Festlegung, ob Capabilities und Resources mitgeneriert werden (Wert: false) oder bereits in der DB vorhandene Maschinen genutzt werden sollen (Wert: true); wenn true, darf GeneralMachiningTimeParameterSet nicht null sein
     "ProductStructureInput": {
       "EndProductCount": 30, //Anhzahl der Endprodukte
       "DepthOfAssembly": 4, //Fertigungstiefe; kann u.U. im Nachhinein vom System verändert werden, wenn erforderlich
@@ -13,14 +14,14 @@
       "DegreeOfOrganization": 1.0, //Organisationsgrad (muss einschließlich zwischen 0 und 1 liegen); kann u.U. im Nachhinein vom System verändert werden, wenn erforderlich
       "Lambda": 1.0, //Lambda für Poisson-Verteilung; wird bei der Initialisierung der Matrix Pi_A verwendet
       "ExtendedTransitionMatrix": true, //false: normale Übergangsmatrix (Mean-/VarianceWorkPlanLength müssen angegeben werden!); true: die Anzahl der Arbeitsgänge pro Arbeitsplan wird mithilfe der Übergangsmatrix bestimmt
-      "InfiniteTools": true, //jede Maschine hat ihre eigenen Werkzeuge (werden nicht mit anderen Maschinen geteilt); !!! wird z.Z. im System nirgends angewendet !!! -> für System immer true, unabhängig vom hier angegebenen Wert
+      "InfiniteTools": true, //true: jede Maschine hat ihre eigenen Werkzeuge (werden nicht mit anderen Maschinen geteilt); false: jedes Werkzeug gibt es genau einmal und es kann nicht zu selben Zeit von mehrere Maschinen (der selben Maschinengruppe) verwendet werden 
       "MeanWorkPlanLength": 4.0, //Mitelwert der zu generierenden Anzahl an Arbeitsgängen pro Arbeitsplan; darf nicht null sein, wenn ExtendedTransitionMatrix = false
       "VarianceWorkPlanLength": 0.0, //Varianz der zu generierenden Anzahl an Arbeitsgängen pro Arbeitsplan;  darf nicht null sein, wenn ExtendedTransitionMatrix = false
-      "GeneralMachiningTimeParameterSet": { //wenn dieser Wert nicht null ist, gilt der hier für die Generierung der Bearbeitungszeiten angegebene Mittelwert und Varianz für jede Maschinengruppe, für die keine individuellen Bearbeitungszeiten generiert werden
+      "GeneralMachiningTimeParameterSet": { //wenn dieser Wert nicht null ist, gilt der hier für die Generierung der Bearbeitungszeiten angegebene Mittelwert und Varianz für jede Maschinengruppe, für die keine individuellen Bearbeitungszeiten generiert werden (wenn UseExistingResourcesData = false); wenn UseExistingResourcesData = true wird der hier festgelegte Mittelwert und die hier festgelegte Varianz für alle Maschinengruppen verwendet, die zuvor in der DB angelegt, aber diese Werte nicht jeweils spezifiziert wurden
         "MeanMachiningTime": 10.0,
         "VarianceMachiningTime": 2.0
       },
-      "WorkingStations": [ //Maschinengruppen; Anzahl an unterschiedlichen Maschinengruppen ergibt sich aus Länge des Arrays
+      "WorkingStations": [ //Maschinengruppen; Anzahl an unterschiedlichen Maschinengruppen ergibt sich aus Länge des Arrays; wird ignoriert, wenn UseExistingResourcesData = true
         {
           "ToolCount": 8, //Anzahl verschiedener Werkzeuge einer Maschine dieser Maschinengruppe
           "ResourceCount": 4, //Anzahl der tatsächlichen Maschinen, die dieser Maschinengruppe angehören

@@ -6,12 +6,13 @@ namespace Master40.DB.Data.DynamicInitializer
 {
     public class ResourceInitializer
     {
-        public static MasterTableResourceCapability Initialize(MasterDBContext context, List<ResourceProperty> resourceProperties)
+        public static MasterTableResourceCapability Initialize(MasterDBContext context,
+            List<ResourceProperty> resourceProperties, bool infiniteTools)
         {
             var resourceCapabilities = new MasterTableResourceCapability();
             resourceCapabilities.CreateCapabilities(context, resourceProperties);
 
-            var resources = new MasterTableResource(resourceCapabilities);
+            var resources = new MasterTableResource(resourceCapabilities, infiniteTools);
             resources.CreateModel(resourceProperties);
             resources.CreateResourceTools(resourceProperties);
 

@@ -18,6 +18,9 @@ namespace Master40.DataGenerator.Verification
             _machineGroupCount = machineGroupCount;
         }
 
+        /**
+         * doesn't take in consideration, that tools might be physical
+         */
         public void Verify(ProductStructure productStructure, TransitionMatrixInput transitionMatrixInput)
         {
             var sumCapacity = 0.0;
