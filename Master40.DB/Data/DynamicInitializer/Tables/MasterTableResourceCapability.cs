@@ -7,9 +7,9 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
 {
     public class MasterTableResourceCapability
     {
-        public List<M_ResourceCapability> Capabilities;
-        public List<M_ResourceCapability> ParentCapabilities;
-        internal MasterTableResourceCapability()
+        public List<M_ResourceCapability> Capabilities { get; set; }
+        public List<M_ResourceCapability> ParentCapabilities { get; set; }
+        public MasterTableResourceCapability()
         {
             Capabilities = new List<M_ResourceCapability>();
         }

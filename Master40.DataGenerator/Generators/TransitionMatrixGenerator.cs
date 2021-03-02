@@ -23,7 +23,7 @@ namespace Master40.DataGenerator.Generators
         private double _organizationDegreeC;
 
         public TransitionMatrix GenerateTransitionMatrix(TransitionMatrixInput inputParameters,
-            ProductStructureInput inputProductStructure, XRandom rng)
+            ProductStructureInput inputProductStructure, Random rng)
         {
             var settings = new DataGeneratorTableTransitionMatrixSettingConfiguration(inputParameters.SettingConfiguration.ToList());
             var jCorrector = 0;
@@ -49,7 +49,7 @@ namespace Master40.DataGenerator.Generators
             return transitionMatrix;
         }
 
-        private void InitializePiA(TransitionMatrixInput inputParameters, XRandom rng, int matrixSize, int jCorrector,
+        private void InitializePiA(TransitionMatrixInput inputParameters, Random rng, int matrixSize, int jCorrector,
             DataGeneratorTableTransitionMatrixSettingConfiguration setting)
         {
             var faculty = new Faculty();
@@ -113,7 +113,7 @@ namespace Master40.DataGenerator.Generators
         }
 
         private double InitializePiACalcCellValue(TransitionMatrixInput inputParameters, int i, int j, int matrixSize,
-            Faculty faculty, XRandom rng, int jCorrector)
+            Faculty faculty, Random rng, int jCorrector)
         {
             var noiseFactor = 1 + 0.2 * (rng.NextDouble() - 0.5);
             if (inputParameters.ExtendedTransitionMatrix && i == 0 && j + 1 == matrixSize)

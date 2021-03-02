@@ -10,7 +10,7 @@ namespace Master40.DataGenerator.Verification
         public void VerifyComplexityAndReutilizationRation(ProductStructureInput input, ProductStructure productStructure)
         {
             var nodesOfLastAssemblyLevelCounter =
-                productStructure.NodesPerLevel[input.DepthOfAssembly - 1].LongCount();
+                productStructure.NodesPerLevel[input.DepthOfAssembly - 1].Count;
             var actualComplexityRatio = productStructure.Edges.Count /
                                         (double) (productStructure.NodesCounter - nodesOfLastAssemblyLevelCounter);
             var actualReutilizationRation = productStructure.Edges.Count /

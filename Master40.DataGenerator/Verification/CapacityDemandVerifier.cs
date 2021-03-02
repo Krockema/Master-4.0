@@ -18,13 +18,17 @@ namespace Master40.DataGenerator.Verification
             _machineGroupCount = machineGroupCount;
         }
 
+        /**
+         * doesn't take in consideration, that tools might be physical
+         */
         public void Verify(ProductStructure productStructure, TransitionMatrixInput transitionMatrixInput)
         {
             var sumCapacity = 0.0;
             var utilizationPerMachineGroup = new double[_machineGroupCount];
             foreach (var endProduct in productStructure.NodesPerLevel[0])
             {
-                var resultForEndProduct = CalculateCapacityDemandForArticle(endProduct.Value);
+                var resultForEndProduct = CalculateCapacityDemandForArticle(endProduct);
+                System.Diagnostics.Debug.WriteLine("Endprodukt " + endProduct.Article.Name + ": " + resultForEndProduct);
                 sumCapacity += resultForEndProduct.Item1;
                 for (var i = 0; i < utilizationPerMachineGroup.Length; i++)
                 {
@@ -33,7 +37,7 @@ namespace Master40.DataGenerator.Verification
             }
 
             var workingStationsArr = transitionMatrixInput.WorkingStations.ToArray();
-            var averageCapacityDemandPerEndProduct = sumCapacity / productStructure.NodesPerLevel[0].LongCount();
+            var averageCapacityDemandPerEndProduct = sumCapacity / productStructure.NodesPerLevel[0].Count;
             System.Diagnostics.Debug.WriteLine("################################# Actual average capacity demand per end product is " + averageCapacityDemandPerEndProduct);
             var utilizationSum = 0.0;
             for (var i = 0; i < utilizationPerMachineGroup.Length; i++)
