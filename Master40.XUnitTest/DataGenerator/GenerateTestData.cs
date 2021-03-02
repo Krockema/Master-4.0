@@ -163,8 +163,8 @@ namespace Master40.XUnitTest.DataGenerator
         [Fact]
         public void GenerateData() //Generierung für Simulation direkt im Testfall, wo Simulation durchgeführt wird
         {
-            var approachRangeStart = 1;
-            var approachRangeEnd = 1;
+            var approachRangeStart = 76;
+            var approachRangeEnd = 76;
             for (var i = approachRangeStart; i < approachRangeEnd + 1; i++)
             {
                 var approachId = i;
@@ -187,7 +187,7 @@ namespace Master40.XUnitTest.DataGenerator
         public void CheckOrganizationDegreeFromResults()
         {
             var simNumberStart = 109;
-            var simNumberEnd = 117;
+            var simNumberEnd = 109;
             var simNumberSkip = new HashSet<int> {};
             var dbContext = MasterDBContext.GetContext(testCtxString);
             var dbResultCtx = ResultContext.GetContext(testResultCtxString);
@@ -206,7 +206,7 @@ namespace Master40.XUnitTest.DataGenerator
             Assert.True(true);
         }
 
-        //maximale Anzahl an Bearbeitungsstationen: 21
+        //maximale Anzahl an Bearbeitungsstationen (Maschinengruppen): 21
         [Fact]
         public void Test1()
         {

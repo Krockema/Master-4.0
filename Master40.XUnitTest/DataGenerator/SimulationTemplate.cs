@@ -27,123 +27,123 @@ namespace Master40.XUnitTest.DataGenerator
         public static IEnumerable<object[]> GetTestData()
         {
             // Simulation run 1
-            yield return new object[]
+            /*yield return new object[]
             {
                 75      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
-                , 345612328  // Random seed
-                , 1/94d*1.20253164556962 // arrival rate
-                , 10080 // simulation end
+                , null  // Random seed
+                , 1/94d*1.31578947368421 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 1     // test iteration number
-            };
-            yield return new object[]
+            };*/
+            /*yield return new object[]
             {
                 76      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
-                , 510795702  // Random seed
-                , 1/52d*1.35714285714286 // arrival rate
-                , 10080 // simulation end
+                , null  // Random seed
+                , 1/52d*1.32352941176471 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 2     // test iteration number
-            };
-            yield return new object[]
+            };*/
+            /*yield return new object[]
             {
-                77      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                84      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
-                , 1728803372  // Random seed
-                , 1/156d*1.50793650793651 // arrival rate
-                , 10080 // simulation end
+                , null  // Random seed
+                , 1/38d*1.25 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 3     // test iteration number
-            };
+            };*/
             yield return new object[]
             {
                 78      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
-                , 620463493  // Random seed
-                , 1/86d*1.1875 // arrival rate
-                , 10080 // simulation end
+                , null  // Random seed
+                , 1/86d*1.41509433962264 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 4     // test iteration number
             };
-            yield return new object[]
-            {
-                79      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
-                , 240   // max bucket size
-                , 2000    // throughput time
-                , 1705611572  // Random seed
-                , 1/61d*1.3013698630137 // arrival rate
-                , 10080 // simulation end
-                , 1900    // min delivery time
-                , 2100    // max delivery time
-                , 5     // test iteration number
-            };
-            yield return new object[]
-            {
-                80      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
-                , 240   // max bucket size
-                , 2000    // throughput time
-                , 144283587  // Random seed
-                , 1/64d*1.484375 // arrival rate
-                , 10080 // simulation end
-                , 1900    // min delivery time
-                , 2100    // max delivery time
-                , 6     // test iteration number
-            };
             /*yield return new object[]
             {
-                81      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                79      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
                 , null  // Random seed
-                , 1/84d // arrival rate
-                , 10080 // simulation end
+                , 1/61d*1.13636363636364 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 5     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                85      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/35d*1.19363395225464 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 6     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                81      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/84d*1.25874125874126 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 7     // test iteration number
             };*/
-            yield return new object[]
+            /*yield return new object[]
             {
                 82      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
-                , 1104930813  // Random seed
-                , 1/59d*1.46153846153846 // arrival rate
-                , 10080 // simulation end
+                , null  // Random seed
+                , 1/59d*1.37404580152672 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 8     // test iteration number
-            };
-            yield return new object[]
+            };*/
+            /*yield return new object[]
             {
-                83      // approach id (test data generator input parameter set id)
-                , 2000   // order Quantity
+                86      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time
-                , 917622697  // Random seed
-                , 1/78d*1.82692307692308 // arrival rate
-                , 10080 // simulation end
+                , null  // Random seed
+                , 1/30d*1.26760563380282 // arrival rate
+                , 50400 // simulation end
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 9     // test iteration number
-            };
+            };*/
             // Simulation run 2
             /*yield return new object[]
             {
@@ -237,7 +237,7 @@ namespace Master40.XUnitTest.DataGenerator
             simConfig.ReplaceOption(new EstimatedThroughPut(value: throughput));
             simConfig.ReplaceOption(new TimePeriodForThroughputCalculation(value: 2880));
             simConfig.ReplaceOption(new Seed(value: (int) seed));
-            simConfig.ReplaceOption(new SettlingStart(value: 0)); 
+            simConfig.ReplaceOption(new SettlingStart(value: 2880)); 
             simConfig.ReplaceOption(new SimulationEnd(value: simulationEnd));
             simConfig.ReplaceOption(new SaveToDB(value: true));
             simConfig.ReplaceOption(new MaxBucketSize(value: maxBucketSize));

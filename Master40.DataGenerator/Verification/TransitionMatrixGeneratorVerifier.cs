@@ -100,6 +100,9 @@ namespace Master40.DataGenerator.Verification
                 var generator = new MainGenerator();
                 generator.StartGeneration(approach, dbContext);
 
+                System.Diagnostics.Debug.WriteLine("################################# Verifying simulation #" + simNumber + " (approach " + approach.Id + ")");
+                System.Diagnostics.Debug.WriteLine("################################# Predefined reutilization ratio: " + approach.ProductStructureInput.ReutilisationRatio);
+
                 var articleCount =
                     ArticleRepository.GetArticleNamesAndCountForEachUsedArticleInSimulation(dbResultCtx, simNumber);
 
