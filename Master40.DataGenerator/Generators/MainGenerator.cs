@@ -21,6 +21,7 @@ namespace Master40.DataGenerator.Generators
         {
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
+            var amountOfWorker = 4;
 
             var rng = new XRandom(approach.Seed);
 
@@ -44,7 +45,7 @@ namespace Master40.DataGenerator.Generators
             List<ResourceProperty> resourceProperties = approach.TransitionMatrixInput.WorkingStations
                 .Select(x => (ResourceProperty)x).ToList();
 
-            var resourceCapabilities = ResourceInitializer.Initialize(dbContext, resourceProperties);
+            var resourceCapabilities = ResourceInitializer.Initialize(dbContext, resourceProperties, amountOfWorker);
 
             var operationGenerator = new OperationGenerator();
             operationGenerator.GenerateOperations(productStructure.NodesPerLevel, TransitionMatrix,

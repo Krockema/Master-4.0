@@ -140,8 +140,8 @@ namespace Master40.XUnitTest.DataGenerator
         [Fact]
         public void GenerateData() //Generierung für Simulation direkt im Testfall, wo Simulation durchgeführt wird
         {
-            var approachRangeStart = 18;
-            var approachRangeEnd = 18;
+            var approachRangeStart = 1;
+            var approachRangeEnd = 1;
             for (var i = approachRangeStart; i < approachRangeEnd + 1; i++)
             {
                 var approachId = i;

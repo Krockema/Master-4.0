@@ -29,7 +29,7 @@ namespace Master40.XUnitTest.DataGenerator
             // Simulation run 1
             yield return new object[]
             {
-                18      // approach id (test data generator input parameter set id)
+                1      // approach id (test data generator input parameter set id)
                 , 240   // order Quantity
                 , 240   // max bucket size
                 , 60    // throughput time
@@ -40,7 +40,7 @@ namespace Master40.XUnitTest.DataGenerator
                 , 65    // max delivery time
                 , 1     // test iteration number
             };
-            yield return new object[]
+            /*yield return new object[]
             {
                 18      // approach id (test data generator input parameter set id)
                 , 240   // order Quantity
@@ -52,7 +52,7 @@ namespace Master40.XUnitTest.DataGenerator
                 , 55    // min delivery time
                 , 65    // max delivery time
                 , 3     // test iteration number
-            };
+            };*/
             // Simulation run 2
             /*yield return new object[]
             {

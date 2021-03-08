@@ -18,28 +18,35 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
             _capability = capability;
         }
 
-        internal void CreateModel(List<ResourceProperty> resourceProperties)
+        internal void CreateModel(List<ResourceProperty> resourceProperties, int amountOfWorker)
         {
+            List<M_Resource> workers = new List<M_Resource>();
+            for (int i = 1; i < 1 + amountOfWorker; i++)
+            {
+                workers.Add(CreateNewResource("Worker " + i, true, true, null));
+            }
+            CapabilityToResourceDict.Add($"Worker", workers);
+
             for (var i = 0; i < resourceProperties.Count; i++)
             {
-                CreateResourceGroup(resourceProperties[i].ResourceCount, _capability.Capabilities[i]);
+                CreateResourceGroup(resourceProperties[i].ResourceCount, _capability.Capabilities[i], workers);
             }
         }
 
-        private void CreateResourceGroup(int numberOfResources, M_ResourceCapability capability)
+        private void CreateResourceGroup(int numberOfResources, M_ResourceCapability capability, List<M_Resource> workers)
         {
             List<M_Resource> resourceGroup = new List<M_Resource>();
             for (int i = 1; i <= numberOfResources; i++)
             {
-                var resource = CreateNewResource("Resource " + capability.Name, true, i);
+                var resource = CreateNewResource("Resource " + capability.Name, true, false, i); ;
                 resourceGroup.Add(resource);
             }
             CapabilityToResourceDict.Add(capability.Name, resourceGroup);
         }
 
-        private M_Resource CreateNewResource(string resourceName, bool isPhysical, int? number = null)
+        private M_Resource CreateNewResource(string resourceName, bool isPhysical, bool isBiological, int? number = null)
         {
-            return new M_Resource() { Name = resourceName + " " + number?.ToString(), Capacity = 1, IsPhysical = isPhysical };
+            return new M_Resource() { Name = resourceName + " " + number?.ToString(), Capacity = 1, IsPhysical = isPhysical, IsBiological = isBiological};
         }
 
         internal void CreateResourceTools(List<ResourceProperty> resourceProperties)
@@ -61,7 +68,14 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
 
             for (int i = 1; i < 1 + numberOfOperators; i++)
             {
-                operators.Add(CreateNewResource(capability.Name + " Operator " + i, true));
+                operators.Add(CreateNewResource(capability.Name + " Operator " + i, true, true));
+            }
+
+
+            List<M_Resource> workers = null;
+            if(CapabilityToResourceDict.TryGetValue("Worker", out var dicWorkers))
+            {
+                workers = dicWorkers;
             }
 
             foreach (var resource in CapabilityToResourceDict.Single(x => x.Key == capability.Name).Value)
@@ -74,18 +88,29 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
                             .Single(x => x.Name == capability.Name)
                             .ChildResourceCapabilities)
                         {
-                            var capabilityProvider = new M_ResourceCapabilityProvider()
-                            {
-                                Name = $"Provides {subCapability.Name} {resource.Name}",
-                                ResourceCapabilityId = subCapability.Id,
-                            };
-                            var tool = CreateNewResource($"Tool {resource.Name} {subCapability.Name}", false);
-                            tools.Add(tool);
+                            var workerCounter = 0;
 
-                            setups.Add(CreateNewSetup(op, capabilityProvider, false, true, 0));
-                            setups.Add(CreateNewSetup(tool, capabilityProvider, true, true, setupTime));
-                            setups.Add(CreateNewSetup(resource, capabilityProvider, true, true, 0));
-                            capabilityProviders.Add(capabilityProvider);
+                            do { 
+                                
+
+                                var capabilityProvider = new M_ResourceCapabilityProvider()
+                                {
+                                    Name = $"Provides {subCapability.Name} {resource.Name}",
+                                    ResourceCapabilityId = subCapability.Id,
+                                };
+                                var tool = CreateNewResource($"Tool {resource.Name} {subCapability.Name}", false, false);
+                                tools.Add(tool);
+
+                                setups.Add(CreateNewSetup(op, capabilityProvider, false, true, 0));
+                                setups.Add(CreateNewSetup(tool, capabilityProvider, true, true, setupTime));
+                                setups.Add(CreateNewSetup(resource, capabilityProvider, true, true, 0));
+                                if(workers != null)
+                                {
+                                    setups.Add(CreateNewSetup(workers[workerCounter], capabilityProvider, true, false, 0));
+                                }
+                                capabilityProviders.Add(capabilityProvider);
+                                workerCounter++;
+                            } while (workers.Count > workerCounter) ;
                         }
                     }
                 }
@@ -95,17 +120,28 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
                         .Single(x => x.Name == capability.Name)
                         .ChildResourceCapabilities)
                     {
-                        var capabilityProvider = new M_ResourceCapabilityProvider()
+                        var workerCounter = 0;
+
+                        do
+                        {
+                            var capabilityProvider = new M_ResourceCapabilityProvider()
                         {
                             Name = $"Provides {subCapability.Name} {resource.Name}",
                             ResourceCapabilityId = subCapability.Id,
                         };
-                        var tool = CreateNewResource($"Tool {resource.Name} {subCapability.Name}", false);
+                        var tool = CreateNewResource($"Tool {resource.Name} {subCapability.Name}", false, false);
                         tools.Add(tool);
 
                         setups.Add(CreateNewSetup(tool, capabilityProvider, true, true, setupTime));
                         setups.Add(CreateNewSetup(resource, capabilityProvider, true, true, 0));
+                        if (workers != null)
+                        {
+                            setups.Add(CreateNewSetup(workers[workerCounter], capabilityProvider, true, false, 0));
+                        }
+
                         capabilityProviders.Add(capabilityProvider);
+                        workerCounter++;
+                        } while (workers.Count > workerCounter);
                     }
                 }
                 CapabilityProviderDict.Add($"{resource.Name} Tooling", capabilityProviders);
