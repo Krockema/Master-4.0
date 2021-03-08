@@ -52,21 +52,22 @@ namespace Master40.Controllers
             var simConfig = ArgumentConverter.ConfigurationConverter(resultCtx: _resultCtx, 1);
             // update customized Items
             simConfig.AddOption(new DBConnectionString(_resultCtx.Database.GetDbConnection().ConnectionString));
-            simConfig.ReplaceOption(new KpiTimeSpan(240));
-            simConfig.ReplaceOption(new TimeToAdvance(value: TimeSpan.FromMilliseconds(50)));
+            //simConfig.ReplaceOption(new KpiTimeSpan(240));
+            //simConfig.ReplaceOption(new TimeToAdvance(value: TimeSpan.FromMilliseconds(50)));
             simConfig.ReplaceOption(new TimeConstraintQueueLength(480));
-            simConfig.ReplaceOption(new OrderArrivalRate(value: arivalRate));
-            simConfig.ReplaceOption(new OrderQuantity(value: orderAmount));
-            simConfig.ReplaceOption(new EstimatedThroughPut(value: estimatedThroughputTime));
+            simConfig.ReplaceOption(new OrderArrivalRate(value: 1/192d));
+            simConfig.ReplaceOption(new OrderQuantity(value: 2000));
+            simConfig.ReplaceOption(new EstimatedThroughPut(value: 2000));
             simConfig.ReplaceOption(new TimePeriodForThroughputCalculation(value: 2880));
-            simConfig.ReplaceOption(new Seed(value: 169));
-            simConfig.ReplaceOption(new SettlingStart(value: 2880));
+            simConfig.ReplaceOption(new Seed(value: 345758734));
+            simConfig.ReplaceOption(new SettlingStart(value: 0));
             simConfig.ReplaceOption(new SimulationEnd(value: 10080));
-            simConfig.ReplaceOption(new SaveToDB(value: false));
+            simConfig.ReplaceOption(new SaveToDB(value: true));
             simConfig.ReplaceOption(new DebugSystem(value: false));
-            simConfig.ReplaceOption(new WorkTimeDeviation(0.2));
-            simConfig.ReplaceOption(new MaxDeliveryTime(3120));
-            simConfig.ReplaceOption(new MinDeliveryTime(2160));
+            simConfig.ReplaceOption(new WorkTimeDeviation(0.0));
+            simConfig.ReplaceOption(new MaxDeliveryTime(240));
+            simConfig.ReplaceOption(new MinDeliveryTime(144));
+            simConfig.ReplaceOption(new MaxBucketSize(value: 240));
 
 
 

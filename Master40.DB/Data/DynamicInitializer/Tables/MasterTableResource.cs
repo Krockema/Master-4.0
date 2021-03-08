@@ -12,10 +12,12 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
         internal Dictionary<string, List<M_ResourceSetup>> CapabilityToSetupDict = new Dictionary<string, List<M_ResourceSetup>>();
         internal Dictionary<string, List<M_ResourceCapabilityProvider>> CapabilityProviderDict = new Dictionary<string, List<M_ResourceCapabilityProvider>>();
         private readonly MasterTableResourceCapability _capability;
+        private readonly bool _infiniteTools;
 
-        public MasterTableResource(MasterTableResourceCapability capability)
+        public MasterTableResource(MasterTableResourceCapability capability, bool infiniteTools)
         {
             _capability = capability;
+            _infiniteTools = infiniteTools;
         }
 
         internal void CreateModel(List<ResourceProperty> resourceProperties, int amountOfWorker)
@@ -129,7 +131,7 @@ namespace Master40.DB.Data.DynamicInitializer.Tables
                             Name = $"Provides {subCapability.Name} {resource.Name}",
                             ResourceCapabilityId = subCapability.Id,
                         };
-                        var tool = CreateNewResource($"Tool {resource.Name} {subCapability.Name}", false, false);
+                        var tool = CreateNewResource($"Tool {resource.Name} {subCapability.Name}", !_infiniteTools, false);
                         tools.Add(tool);
 
                         setups.Add(CreateNewSetup(tool, capabilityProvider, true, true, setupTime));

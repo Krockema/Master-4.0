@@ -6,6 +6,7 @@ using Master40.DataGenerator.Generators;
 using Master40.DataGenerator.Repository;
 using Master40.DB.Data.Context;
 using Master40.DB.Data.DynamicInitializer.Tables;
+using Master40.DB.GeneratorModel;
 using Master40.DB.Util;
 
 namespace Master40.DataGenerator.Verification
@@ -16,43 +17,52 @@ namespace Master40.DataGenerator.Verification
         public double? ActualOrganizationDegree;
         public double? GeneratedOrganizationDegree;
 
-        public void VerifyGeneratedData(TransitionMatrix transitionMatrix, List<Dictionary<long, Node>> nodesPerLevel,
-            MasterTableResourceCapability capabilities)
+        public void VerifyGeneratedData(TransitionMatrix transitionMatrix, List<List<Node>> nodesPerLevel,
+            MasterTableResourceCapability capabilities, TransitionMatrixInput transitionMatrixInput, bool noOutput = false)
         {
+
+            var matrixSizeCorrection = 0;
+            if (transitionMatrixInput.ExtendedTransitionMatrix)
+            {
+                matrixSizeCorrection++;
+            }
 
             var actualTransitionMatrix = new TransitionMatrix
             {
-                Pi = new double[capabilities.ParentCapabilities.Count + 1, capabilities.ParentCapabilities.Count + 1]
+                Pi = new double[capabilities.ParentCapabilities.Count + matrixSizeCorrection, capabilities.ParentCapabilities.Count + matrixSizeCorrection]
             };
-            for (var i = 0; i < nodesPerLevel.Count - 1; i++)
+            foreach (var article in nodesPerLevel.SelectMany(_ => _).Where(x => x.AssemblyLevel < nodesPerLevel.Count))
             {
-                foreach (var article in nodesPerLevel[i].Values)
+                var operationCount = 0;
+                var lastCapPos = 0;
+                do
                 {
-                    var operationCount = 0;
-                    var lastCapPos = 0;
-                    do
+                    var capPos = capabilities.ParentCapabilities.FindIndex(x =>
+                        object.ReferenceEquals(x,
+                            article.Operations[operationCount].MOperation.ResourceCapability.ParentResourceCapability));
+                    if (transitionMatrixInput.ExtendedTransitionMatrix || operationCount != 0)
                     {
-                        var capPos = capabilities.ParentCapabilities.FindIndex(x =>
-                            object.ReferenceEquals(x,
-                                article.Operations[operationCount].MOperation.ResourceCapability.ParentResourceCapability));
                         actualTransitionMatrix.Pi[lastCapPos, capPos]++;
-                        lastCapPos = capPos + 1;
-                        operationCount++;
-                    } while (operationCount < article.Operations.Count);
+                    }
+                    lastCapPos = capPos + matrixSizeCorrection;
+                    operationCount++;
+                } while (operationCount < article.Operations.Count);
 
+                if (transitionMatrixInput.ExtendedTransitionMatrix)
+                {
                     actualTransitionMatrix.Pi[lastCapPos, capabilities.ParentCapabilities.Count]++;
                 }
             }
 
-            for (var i = 0; i <= capabilities.ParentCapabilities.Count; i++)
+            for (var i = 0; i < capabilities.ParentCapabilities.Count + matrixSizeCorrection; i++)
             {
                 var sum = 0.0;
-                for (var j = 0; j <= capabilities.ParentCapabilities.Count; j++)
+                for (var j = 0; j < capabilities.ParentCapabilities.Count + matrixSizeCorrection; j++)
                 {
                     sum += actualTransitionMatrix.Pi[i, j];
                 }
 
-                for (var j = 0; j <= capabilities.ParentCapabilities.Count; j++)
+                for (var j = 0; j < capabilities.ParentCapabilities.Count + matrixSizeCorrection; j++)
                 {
                     actualTransitionMatrix.Pi[i, j] /= sum;
                 }
@@ -60,16 +70,21 @@ namespace Master40.DataGenerator.Verification
 
             var transitionMatrixGenerator = new TransitionMatrixGenerator();
             ActualOrganizationDegree = transitionMatrixGenerator.CalcOrganizationDegree(actualTransitionMatrix.Pi,
-                capabilities.ParentCapabilities.Count + 1);
+                capabilities.ParentCapabilities.Count + matrixSizeCorrection);
             GeneratedOrganizationDegree = transitionMatrixGenerator.CalcOrganizationDegree(transitionMatrix.Pi,
-                capabilities.ParentCapabilities.Count + 1);
+                capabilities.ParentCapabilities.Count + matrixSizeCorrection);
 
-            System.Diagnostics.Debug.WriteLine("################################# Generated work plans have an organization degree of " + ActualOrganizationDegree + " (transition matrix has " + GeneratedOrganizationDegree + ")");
+            if (!noOutput)
+            {
+                System.Diagnostics.Debug.WriteLine("################################# Generated work plans have an organization degree of " + ActualOrganizationDegree + " (transition matrix has " + GeneratedOrganizationDegree + "; input was " + transitionMatrixInput.DegreeOfOrganization + ")");
 
-            System.Diagnostics.Debug.WriteLine("################################# Generated transition matrix from input:");
-            transitionMatrixGenerator.OutputMatrixAsCsv(transitionMatrix.Pi, capabilities.ParentCapabilities.Count + 1);
-            System.Diagnostics.Debug.WriteLine("################################# Actual transition matrix from generated work plans:");
-            transitionMatrixGenerator.OutputMatrixAsCsv(actualTransitionMatrix.Pi, capabilities.ParentCapabilities.Count + 1);
+                System.Diagnostics.Debug.WriteLine("################################# Generated transition matrix from input:");
+                transitionMatrixGenerator.OutputMatrixForExcel(transitionMatrix.Pi, capabilities.ParentCapabilities.Count + matrixSizeCorrection);
+                System.Diagnostics.Debug.WriteLine("################################# Actual transition matrix from generated work plans:");
+                transitionMatrixGenerator.OutputMatrixForExcel(actualTransitionMatrix.Pi, capabilities.ParentCapabilities.Count + matrixSizeCorrection);
+
+                System.Diagnostics.Debug.WriteLine("################################# Lambda: " + transitionMatrixInput.Lambda);
+            }
         }
 
         public void VerifySimulatedData(MasterDBContext dbContext, DataGeneratorContext dbGeneratorCtx,
@@ -79,10 +94,12 @@ namespace Master40.DataGenerator.Verification
             if (simulation != null)
             {
                 var approach = ApproachRepository.GetApproachById(dbGeneratorCtx, simulation.ApproachId);
-                if (approach.TransitionMatrixInput.ExtendedTransitionMatrix)
+                var generator = new MainGenerator();
+                if (generator.StartGeneration(approach, dbContext))
                 {
-                    var generator = new MainGenerator();
-                    generator.StartGeneration(approach, dbContext);
+
+                    System.Diagnostics.Debug.WriteLine("################################# Verifying simulation #" + simNumber + " (approach " + approach.Id + ")");
+                    System.Diagnostics.Debug.WriteLine("################################# Predefined reutilization ratio: " + approach.ProductStructureInput.ReutilisationRatio);
 
                     var articleCount =
                         ArticleRepository.GetArticleNamesAndCountForEachUsedArticleInSimulation(dbResultCtx, simNumber);
@@ -91,9 +108,16 @@ namespace Master40.DataGenerator.Verification
                         ArticleRepository.GetArticlesByNames(articleCount.Keys.ToHashSet(), dbContext);
                     var capabilities = ResourceCapabilityRepository.GetParentResourceCapabilities(dbContext);
 
+                    var matrixSizeCorrection = 0;
+                    if (approach.TransitionMatrixInput.ExtendedTransitionMatrix)
+                    {
+                        matrixSizeCorrection++;
+                    }
+
                     var actualTransitionMatrix = new TransitionMatrix
                     {
-                        Pi = new double[capabilities.Count + 1, capabilities.Count + 1]
+                        Pi = new double[capabilities.Count + matrixSizeCorrection,
+                            capabilities.Count + matrixSizeCorrection]
                     };
 
                     var capPosByCapId = new Dictionary<int, int>();
@@ -116,23 +140,30 @@ namespace Master40.DataGenerator.Verification
                             var capPos =
                                 capPosByCapId[
                                     operations[operationCount].ResourceCapability.ParentResourceCapability.Id];
-                            actualTransitionMatrix.Pi[lastCapPos, capPos] += articleCount[a.Key];
-                            lastCapPos = capPos + 1;
+                            if (approach.TransitionMatrixInput.ExtendedTransitionMatrix || operationCount != 0)
+                            {
+                                actualTransitionMatrix.Pi[lastCapPos, capPos] += articleCount[a.Key];
+                            }
+
+                            lastCapPos = capPos + matrixSizeCorrection;
                             operationCount++;
                         } while (operationCount < operations.Count);
 
-                        actualTransitionMatrix.Pi[lastCapPos, capabilities.Count] += articleCount[a.Key];
+                        if (approach.TransitionMatrixInput.ExtendedTransitionMatrix)
+                        {
+                            actualTransitionMatrix.Pi[lastCapPos, capabilities.Count] += articleCount[a.Key];
+                        }
                     }
 
-                    for (var i = 0; i <= capabilities.Count; i++)
+                    for (var i = 0; i < capabilities.Count + matrixSizeCorrection; i++)
                     {
                         var sum = 0.0;
-                        for (var j = 0; j <= capabilities.Count; j++)
+                        for (var j = 0; j < capabilities.Count + matrixSizeCorrection; j++)
                         {
                             sum += actualTransitionMatrix.Pi[i, j];
                         }
 
-                        for (var j = 0; j <= capabilities.Count; j++)
+                        for (var j = 0; j < capabilities.Count + matrixSizeCorrection; j++)
                         {
                             actualTransitionMatrix.Pi[i, j] /= sum;
                         }
@@ -141,15 +172,26 @@ namespace Master40.DataGenerator.Verification
                     var transitionMatrixGenerator = new TransitionMatrixGenerator();
                     ActualOrganizationDegree = transitionMatrixGenerator.CalcOrganizationDegree(
                         actualTransitionMatrix.Pi,
-                        capabilities.Count + 1);
+                        capabilities.Count + matrixSizeCorrection);
                     GeneratedOrganizationDegree = transitionMatrixGenerator.CalcOrganizationDegree(
                         generator.TransitionMatrix.Pi,
-                        capabilities.Count + 1);
+                        capabilities.Count + matrixSizeCorrection);
 
-                    System.Diagnostics.Debug.WriteLine("################################# Executed work plans have an organization degree of " + ActualOrganizationDegree + " (transition matrix has " + GeneratedOrganizationDegree + "; input was " + approach.TransitionMatrixInput.DegreeOfOrganization + ")");
+                    var generatedOG = new TransitionMatrixGeneratorVerifier();
+                    generatedOG.VerifyGeneratedData(generator.TransitionMatrix, generator.ProductStructure.NodesPerLevel,
+                        generator.ResourceCapabilities, approach.TransitionMatrixInput, true);
 
-                    System.Diagnostics.Debug.WriteLine("################################# Actual transition matrix from executed work plans in simulation:");
-                    transitionMatrixGenerator.OutputMatrixAsCsv(actualTransitionMatrix.Pi, capabilities.Count + 1);
+                    System.Diagnostics.Debug.WriteLine(
+                        "################################# Executed work plans have an organization degree of " +
+                        ActualOrganizationDegree + " (generated work plans have " +
+                        generatedOG.ActualOrganizationDegree + "; transition matrix has " +
+                        GeneratedOrganizationDegree + "; input was " +
+                        approach.TransitionMatrixInput.DegreeOfOrganization + ")");
+
+                    System.Diagnostics.Debug.WriteLine(
+                        "################################# Actual transition matrix from executed work plans in simulation:");
+                    transitionMatrixGenerator.OutputMatrixForExcel(actualTransitionMatrix.Pi,
+                        capabilities.Count + matrixSizeCorrection);
                 }
             }
         }

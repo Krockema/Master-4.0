@@ -25,11 +25,15 @@ namespace Master40.DB.Data.Context
         public DbSet<ProductStructureInput> ProductStructureInputs { get; set; }
         public DbSet<TransitionMatrixInput> TransitionMatrixInputs { get; set; }
         public DbSet<WorkingStationParameterSet> WorkingStations { get; set; }
+        public DbSet<EdgeWeightRoundMode> EdgeWeightRoundModes { get; set; }
+        public DbSet<TransitionMatrixSettingOption> TransitionMatrixSettingOptions { get; set; }
+        public DbSet<TransitionMatrixSettingConfiguration> TransitionMatrixSettingConfigurations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Approach>()
-                .ToTable("Approach");
+                .ToTable("Approach")
+                .HasCheckConstraint("TransitionMatrixInput_CK_ResourcesData", "(UseExistingResourcesData = 0 AND ResourcesDataHash IS NULL) OR (UseExistingResourcesData = 1 AND ResourcesDataHash IS NOT NULL)");
             modelBuilder.Entity<Simulation>()
                 .ToTable("Simulation")
                 .HasOne(sim => sim.Approach)
@@ -48,6 +52,11 @@ namespace Master40.DB.Data.Context
                 .HasOne(bom => bom.Approach)
                 .WithOne(a => a.BomInput)
                 .HasForeignKey<BillOfMaterialInput>(bom => bom.ApproachId);
+            modelBuilder.Entity<BillOfMaterialInput>()
+                .ToTable("BomInput")
+                .HasOne(bom => bom.EdgeWeightRoundMode)
+                .WithMany(ewrm => ewrm.BomInputs)
+                .HasForeignKey(bom => bom.EdgeWeightRoundModeId);
             modelBuilder.Entity<ProductStructureInput>()
                 .ToTable("ProductStructureInput")
                 .HasOne(psi => psi.Approach)
@@ -75,6 +84,28 @@ namespace Master40.DB.Data.Context
                 .HasForeignKey<WorkingStationParameterSet>(ws => ws.MachiningTimeId);
             modelBuilder.Entity<MachiningTimeParameterSet>()
                 .ToTable("MachiningTime");
+            modelBuilder.Entity<EdgeWeightRoundMode>()
+                .ToTable("EdgeWeightRoundMode")
+                .HasIndex(ewrm => ewrm.Name)
+                .IsUnique();
+            modelBuilder.Entity<TransitionMatrixSettingOption>()
+                .ToTable("TransitionMatrixSettingOption")
+                .HasIndex(tms => tms.Name)
+                .IsUnique();
+            modelBuilder.Entity<TransitionMatrixSettingConfiguration>()
+                .ToTable("TransitionMatrixSettingConfiguration")
+                .HasIndex(tmsc => new {tmsc.SettingOptionId, tmsc.TransitionMatrixId})
+                .IsUnique();
+            modelBuilder.Entity<TransitionMatrixSettingConfiguration>()
+                .ToTable("TransitionMatrixSettingConfiguration")
+                .HasOne(tmsc => tmsc.SettingOption)
+                .WithMany(tmso => tmso.SettingConfigurations)
+                .HasForeignKey(tmsc => tmsc.SettingOptionId);
+            modelBuilder.Entity<TransitionMatrixSettingConfiguration>()
+                .ToTable("TransitionMatrixSettingConfiguration")
+                .HasOne(tmsc => tmsc.TransitionMatrix)
+                .WithMany(tmi => tmi.SettingConfiguration)
+                .HasForeignKey(tmsc => tmsc.TransitionMatrixId);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)

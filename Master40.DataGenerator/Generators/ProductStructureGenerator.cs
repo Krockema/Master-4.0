@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Master40.DataGenerator.DataModel.ProductStructure;
 using Master40.DataGenerator.Util;
 using Master40.DB.Data.Initializer.Tables;
@@ -14,15 +15,16 @@ namespace Master40.DataGenerator.Generators
     {
         // Wie könnte man Testen, ob der Algorithmus dem aus SYMTEP enspricht (keine Fehler enthält)
         public ProductStructure GenerateProductStructure(ProductStructureInput inputParameters,
-            MasterTableArticleType articleTypes, MasterTableUnit units, M_Unit[] unitCol, XRandom rng)
+            BillOfMaterialInput bomInput, MasterTableArticleType articleTypes, MasterTableUnit units, M_Unit[] unitCol,
+            Random rng, TransitionMatrixInput transitionMatrixParameters)
         {
             var productStructure = new ProductStructure();
-            var availableNodes = new List<HashSet<long>>();
-            GenerateParts(inputParameters, productStructure, availableNodes, articleTypes, units, unitCol, rng);
+            var availableNodes = new List<HashSet<int>>();
+            GenerateParts(inputParameters, productStructure, availableNodes, articleTypes, units, unitCol, rng, transitionMatrixParameters);
 
             GenerateEdges(inputParameters, productStructure, rng, availableNodes);
 
-            DeterminationOfEdgeWeights(inputParameters, productStructure, rng);
+            DeterminationOfEdgeWeights(inputParameters, bomInput, productStructure, units, rng);
 
             return productStructure;
         }
@@ -68,40 +70,39 @@ namespace Master40.DataGenerator.Generators
             return pk;
         }
 
-        private void GenerateParts(ProductStructureInput inputParameters, ProductStructure productStructure,
-            List<HashSet<long>> availableNodes, MasterTableArticleType articleTypes, MasterTableUnit units,
-            M_Unit[] unitCol, XRandom rng)
+        private void GenerateParts(ProductStructureInput productStructureParameters, ProductStructure productStructure,
+            List<HashSet<int>> availableNodes, MasterTableArticleType articleTypes, MasterTableUnit units,
+            M_Unit[] unitCol, Random rng, TransitionMatrixInput transitionMatrixParameters)
         {
-            bool sampleWorkPlanLength = inputParameters.MeanWorkPlanLength != null &&
-                                        inputParameters.VarianceWorkPlanLength != null;
+            bool sampleWorkPlanLength = transitionMatrixParameters.MeanWorkPlanLength != null &&
+                                        transitionMatrixParameters.VarianceWorkPlanLength != null;
             TruncatedDiscreteNormal truncatedDiscreteNormalDistribution = null;
             if (sampleWorkPlanLength)
             {
                 truncatedDiscreteNormalDistribution = new TruncatedDiscreteNormal(1, null,
-                    Normal.WithMeanVariance((double) inputParameters.MeanWorkPlanLength,
-                        (double) inputParameters.VarianceWorkPlanLength, rng.GetRng()));
+                    Normal.WithMeanVariance((double) transitionMatrixParameters.MeanWorkPlanLength,
+                        (double) transitionMatrixParameters.VarianceWorkPlanLength, rng));
             }
-            for (var i = 1; i <= inputParameters.DepthOfAssembly; i++)
+            for (var i = 1; i <= productStructureParameters.DepthOfAssembly; i++)
             {
-                productStructure.NodesCounter += GeneratePartsForEachLevel(inputParameters, productStructure, availableNodes,
-                    articleTypes, units, unitCol, rng, i, sampleWorkPlanLength, truncatedDiscreteNormalDistribution);
+                productStructure.NodesCounter += GeneratePartsForEachLevel(productStructureParameters, productStructure,
+                    availableNodes, articleTypes, units, unitCol, rng, i, sampleWorkPlanLength,
+                    truncatedDiscreteNormalDistribution);
             }
         }
 
-        private static long GeneratePartsForEachLevel(ProductStructureInput inputParameters,
-            ProductStructure productStructure, List<HashSet<long>> availableNodes, MasterTableArticleType articleTypes,
-            MasterTableUnit units, M_Unit[] unitCol, XRandom rng, int i, bool sampleWorkPlanLength,
+        private static int GeneratePartsForEachLevel(ProductStructureInput inputParameters,
+            ProductStructure productStructure, List<HashSet<int>> availableNodes, MasterTableArticleType articleTypes,
+            MasterTableUnit units, M_Unit[] unitCol, Random rng, int i, bool sampleWorkPlanLength,
             TruncatedDiscreteNormal truncatedDiscreteNormalDistribution)
         {
             //Problem mit Algorithmus aus SYMTEP: bei ungünstigen Eingabeparametern gibt es auf manchen Fertigungsstufen keine Teile (0 Knoten)
             //-> Es fehlt wohl Nebenbedingung, dass Anzahl an Teilen auf jeden Fertigungsstufe mindestens 1 sein darf
             //-> Entsprechend wurde das hier angepasst
-            var nodeCount = Math.Max(1, Convert.ToInt64(Math.Round(
-                Math.Pow(inputParameters.ComplexityRatio / inputParameters.ReutilisationRatio, i - 1) *
-                inputParameters.EndProductCount)));
-            var nodesCurrentLevel = new Dictionary<long, Node>();
+            var nodeCount = Math.Max(1, (int) CalculateAmountOfPartsForGivenLevel(i, inputParameters));
+            var nodesCurrentLevel = new List<Node>();
             productStructure.NodesPerLevel.Add(nodesCurrentLevel);
-            var availableNodesOnThisLevel = new HashSet<long>();
+            var availableNodesOnThisLevel = new HashSet<int>();
             availableNodes.Add(availableNodesOnThisLevel);
 
             bool toPurchase, toBuild;
@@ -128,7 +129,7 @@ namespace Master40.DataGenerator.Generators
                 articleType = articleTypes.ASSEMBLY;
             }
 
-            for (long j = 0; j < nodeCount; j++)
+            for (var j = 0; j < nodeCount; j++)
             {
                 unit = GeneratePartsForCurrentLevel(inputParameters, unitCol, rng, i, sampleWorkPlanLength,
                     truncatedDiscreteNormalDistribution, availableNodesOnThisLevel, j, unit, articleType, toPurchase,
@@ -139,9 +140,9 @@ namespace Master40.DataGenerator.Generators
         }
 
         private static M_Unit GeneratePartsForCurrentLevel(ProductStructureInput inputParameters, M_Unit[] unitCol,
-            XRandom rng, int i, bool sampleWorkPlanLength, TruncatedDiscreteNormal truncatedDiscreteNormalDistribution,
-            HashSet<long> availableNodesOnThisLevel, long j, M_Unit unit, M_ArticleType articleType, bool toPurchase,
-            bool toBuild, Dictionary<long, Node> nodesCurrentLevel)
+            Random rng, int i, bool sampleWorkPlanLength, TruncatedDiscreteNormal truncatedDiscreteNormalDistribution,
+            HashSet<int> availableNodesOnThisLevel, int j, M_Unit unit, M_ArticleType articleType, bool toPurchase,
+            bool toBuild, List<Node> nodesCurrentLevel)
         {
             availableNodesOnThisLevel.Add(j);
 
@@ -166,7 +167,7 @@ namespace Master40.DataGenerator.Generators
                     ToBuild = toBuild
                 }
             };
-            nodesCurrentLevel[j] = node;
+            nodesCurrentLevel.Add(node);
             if (sampleWorkPlanLength && i != inputParameters.DepthOfAssembly)
             {
                 node.WorkPlanLength = truncatedDiscreteNormalDistribution.Sample();
@@ -175,14 +176,14 @@ namespace Master40.DataGenerator.Generators
             return unit;
         }
 
-        private void GenerateEdges(ProductStructureInput inputParameters, ProductStructure productStructure, XRandom rng,
-            List<HashSet<long>> availableNodes)
+        private void GenerateEdges(ProductStructureInput inputParameters, ProductStructure productStructure, Random rng,
+            List<HashSet<int>> availableNodes)
         {
             var nodesOfLastAssemblyLevelCounter =
-                productStructure.NodesPerLevel[inputParameters.DepthOfAssembly - 1].LongCount();
-            var edgeCount = Convert.ToInt64(Math.Round(Math.Max(
+                productStructure.NodesPerLevel[inputParameters.DepthOfAssembly - 1].Count;
+            var edgeCount = (int) Math.Round(Math.Max(
                 inputParameters.ReutilisationRatio * (productStructure.NodesCounter - inputParameters.EndProductCount),
-                inputParameters.ComplexityRatio * (productStructure.NodesCounter - nodesOfLastAssemblyLevelCounter))));
+                inputParameters.ComplexityRatio * (productStructure.NodesCounter - nodesOfLastAssemblyLevelCounter)));
             var pkPerI = GetSetOfCumulatedProbabilitiesPk1(inputParameters.DepthOfAssembly);
             if (inputParameters.ReutilisationRatio < inputParameters.ComplexityRatio)
             {
@@ -197,15 +198,15 @@ namespace Master40.DataGenerator.Generators
             GenerateSecondSetOfEdges(inputParameters, productStructure, rng, edgeCount, pkPerI);
         }
 
-        private void GenerateFirstSetOfEdgesForConvergingMaterialFlow(ProductStructureInput inputParameters, XRandom rng,
-            Dictionary<int, List<KeyValuePair<int, double>>> pkPerI, List<HashSet<long>> availableNodes,
+        private void GenerateFirstSetOfEdgesForConvergingMaterialFlow(ProductStructureInput inputParameters, Random rng,
+            Dictionary<int, List<KeyValuePair<int, double>>> pkPerI, List<HashSet<int>> availableNodes,
             ProductStructure productStructure)
         {
             for (var i = 1; i <= inputParameters.DepthOfAssembly - 1; i++)
             {
-                for (long j = 1; j <= productStructure.NodesPerLevel[i - 1].LongCount() /*&& availableNodes[i].LongCount() > 0*/; j++)
+                for (var j = 1; j <= productStructure.NodesPerLevel[i - 1].Count; j++)
                 {
-                    var startNodePos = rng.NextLong(availableNodes[i].LongCount());
+                    var startNodePos = rng.Next(availableNodes[i].Count);
                     var startNode = availableNodes[i].ToArray()[startNodePos];
                     var edge = new Edge
                     {
@@ -237,7 +238,7 @@ namespace Master40.DataGenerator.Generators
                     }
 
                     var assemblyLevelOfEndNode = pkPerI[i][k].Key;
-                    var posOfNode = rng.NextLong(productStructure.NodesPerLevel[assemblyLevelOfEndNode - 1].LongCount());
+                    var posOfNode = rng.Next(productStructure.NodesPerLevel[assemblyLevelOfEndNode - 1].Count);
                     var edge = new Edge
                     {
                         Start = productStructure.NodesPerLevel[i - 1][j],
@@ -250,13 +251,13 @@ namespace Master40.DataGenerator.Generators
         }
 
         private void GenerateFirstSetOfEdgesForDivergingMaterialFlow(ProductStructureInput inputParameters,
-            ProductStructure productStructure, XRandom rng, List<HashSet<long>> availableNodes)
+            ProductStructure productStructure, Random rng, List<HashSet<int>> availableNodes)
         {
             for (var i = inputParameters.DepthOfAssembly; i >= 2; i--)
             {
-                for (long j = 1; j <= productStructure.NodesPerLevel[i - 1].LongCount() /*&& availableNodes[i - 2].LongCount() > 0*/; j++)
+                for (var j = 1; j <= productStructure.NodesPerLevel[i - 1].Count; j++)
                 {
-                    var endNodePos = rng.NextLong(availableNodes[i - 2].LongCount());
+                    var endNodePos = rng.Next(availableNodes[i - 2].Count);
                     var endNode = availableNodes[i - 2].ToArray()[endNodePos];
                     var edge = new Edge
                     {
@@ -289,7 +290,7 @@ namespace Master40.DataGenerator.Generators
                     }
 
                     var assemblyLevelOfStartNode = pk[k].Key;
-                    var posOfNode = rng.NextLong(productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1].LongCount());
+                    var posOfNode = rng.Next(productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1].Count);
                     var edge = new Edge
                     {
                         Start = productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1][posOfNode],
@@ -302,21 +303,21 @@ namespace Master40.DataGenerator.Generators
         }
 
         private static void GenerateSecondSetOfEdges(ProductStructureInput inputParameters, ProductStructure productStructure,
-            XRandom rng, long edgeCount, Dictionary<int, List<KeyValuePair<int, double>>> pkPerI)
+            Random rng, int edgeCount, Dictionary<int, List<KeyValuePair<int, double>>> pkPerI)
         {
             var possibleStartNodes = productStructure.NodesCounter - inputParameters.EndProductCount;
-            for (var j = productStructure.Edges.LongCount() + 1; j <= edgeCount; j++)
+            for (var j = productStructure.Edges.Count + 1; j <= edgeCount; j++)
             {
-                var startNodePos = rng.NextLong(possibleStartNodes) + 1;
+                var startNodePos = rng.Next(possibleStartNodes) + 1;
                 var assemblyLevelOfStartNode = 2;
                 while (assemblyLevelOfStartNode < inputParameters.DepthOfAssembly)
                 {
-                    if (startNodePos <= productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1].LongCount())
+                    if (startNodePos <= productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1].Count)
                     {
                         break;
                     }
 
-                    startNodePos -= productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1].LongCount();
+                    startNodePos -= productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1].Count;
                     assemblyLevelOfStartNode++;
                 }
 
@@ -335,7 +336,7 @@ namespace Master40.DataGenerator.Generators
                 }
 
                 var assemblyLevelOfEndNode = pkPerI[assemblyLevelOfStartNode][k].Key;
-                var endNodePos = rng.NextLong(productStructure.NodesPerLevel[assemblyLevelOfEndNode - 1].LongCount());
+                var endNodePos = rng.Next(productStructure.NodesPerLevel[assemblyLevelOfEndNode - 1].Count);
                 var edge = new Edge
                 {
                     Start = productStructure.NodesPerLevel[assemblyLevelOfStartNode - 1][startNodePos - 1],
@@ -346,14 +347,61 @@ namespace Master40.DataGenerator.Generators
             }
         }
 
-        private static void DeterminationOfEdgeWeights(ProductStructureInput inputParameters, ProductStructure productStructure, XRandom rng)
+        private static void DeterminationOfEdgeWeights(ProductStructureInput inputParameters,
+            BillOfMaterialInput bomInput, ProductStructure productStructure, MasterTableUnit units, Random rng)
         {
             var logNormalDistribution = LogNormal.WithMeanVariance(inputParameters.MeanIncomingMaterialAmount,
-                Math.Pow(inputParameters.StdDevIncomingMaterialAmount, 2), rng.GetRng());
+                inputParameters.VarianceIncomingMaterialAmount, rng);
+            var edgeWeightRoundModes = new DataGeneratorTableEdgeWeightRoundMode();
             foreach (var edge in productStructure.Edges)
             {
-                edge.Weight = logNormalDistribution.Sample();
+                var weight = logNormalDistribution.Sample();
+                if (edgeWeightRoundModes.ROUND_ALWAYS.Name == bomInput.EdgeWeightRoundMode.Name)
+                {
+                    edge.Weight = Math.Max(1, Math.Round(weight));
+                }
+                else if (edgeWeightRoundModes.ROUND_IF_IT_MAKES_SENSE.Name == bomInput.EdgeWeightRoundMode.Name)
+                {
+                    if (edge.Start.Article.UnitId == units.PIECES.Id)
+                    {
+                        edge.Weight = Math.Max(1, Math.Round(weight));
+                    }
+                    else
+                    {
+                        edge.Weight = Math.Max(bomInput.WeightEpsilon, weight);
+                    }
+                }
+                else if (edgeWeightRoundModes.ROUND_NEVER.Name == bomInput.EdgeWeightRoundMode.Name)
+                {
+                    edge.Weight = Math.Max(bomInput.WeightEpsilon, weight);
+                }
             }
+        }
+
+        public static bool DeterminateMaxDepthOfAssemblyAndCheckLimit(ProductStructureInput input)
+        {
+            var total = BigInteger.Zero;
+            for (var i = 1; i <= input.DepthOfAssembly; i++)
+            {
+                var result = new BigInteger(CalculateAmountOfPartsForGivenLevel(i, input));
+                //wegen double beginnen die Werte, wenn sie etwa 17-stellig werden, vom richtigen Ergebnis abzuweichen
+                //das ist aber nicht so schlimm, da die Größenordnung in etwa gewahrt wird und overflows nicht auftreten
+                if (result.Equals(BigInteger.Zero))
+                {
+                    input.DepthOfAssembly = i - 1;
+                    break;
+                }
+
+                total += result;
+            }
+
+            return total <= 100000;
+        }
+
+        public static double CalculateAmountOfPartsForGivenLevel(int level, ProductStructureInput input)
+        {
+            return Math.Round(Math.Pow(input.ComplexityRatio / input.ReutilisationRatio, level - 1) *
+                              input.EndProductCount);
         }
     }
 }

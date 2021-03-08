@@ -61,6 +61,7 @@ namespace Master40.XUnitTest.SimulationEnvironment
             DataGeneratorContext generatorCtx = DataGeneratorContext.GetContext(generatorConnectionString);
             generatorCtx.Database.EnsureDeleted();
             generatorCtx.Database.EnsureCreated();
+            DataGeneratorDBInitializer.DbInitialize(generatorCtx);
 
         }
 

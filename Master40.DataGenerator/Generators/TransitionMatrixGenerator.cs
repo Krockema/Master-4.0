@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using Master40.DataGenerator.DataModel;
 using Master40.DataGenerator.Util;
+using Master40.DB.Data.Initializer.Tables;
 using Master40.DB.GeneratorModel;
 
 namespace Master40.DataGenerator.Generators
@@ -21,8 +23,9 @@ namespace Master40.DataGenerator.Generators
         private double _organizationDegreeC;
 
         public TransitionMatrix GenerateTransitionMatrix(TransitionMatrixInput inputParameters,
-            ProductStructureInput inputProductStructure, XRandom rng)
+            ProductStructureInput inputProductStructure, Random rng)
         {
+            var settings = new DataGeneratorTableTransitionMatrixSettingConfiguration(inputParameters.SettingConfiguration.ToList());
             var jCorrector = 0;
             var matrixSize = inputParameters.WorkingStations.Count;
             if (inputParameters.ExtendedTransitionMatrix)
@@ -33,8 +36,8 @@ namespace Master40.DataGenerator.Generators
             _piA = new double[matrixSize, matrixSize];
             _piB = new double[matrixSize, matrixSize];
 
-            InitializePiA(inputParameters, rng, matrixSize, jCorrector);
-            InitializePiB(inputParameters, inputProductStructure, matrixSize, jCorrector);
+            InitializePiA(inputParameters, rng, matrixSize, jCorrector, settings);
+            InitializePiB(inputParameters, inputProductStructure, matrixSize, jCorrector, settings);
             while (Math.Abs(_organizationDegreeA - inputParameters.DegreeOfOrganization) > 0.001)
             {
                 Bisection(inputParameters, matrixSize);
@@ -46,7 +49,8 @@ namespace Master40.DataGenerator.Generators
             return transitionMatrix;
         }
 
-        private void InitializePiA(TransitionMatrixInput inputParameters, XRandom rng, int matrixSize, int jCorrector)
+        private void InitializePiA(TransitionMatrixInput inputParameters, Random rng, int matrixSize, int jCorrector,
+            DataGeneratorTableTransitionMatrixSettingConfiguration setting)
         {
             var faculty = new Faculty();
             for (var i = 0; i < matrixSize; i++)
@@ -69,10 +73,47 @@ namespace Master40.DataGenerator.Generators
                 }
             }
 
+            if (setting.BALANCED_PI_A_INIT.SettingValue != 0.0)
+            {
+                NormalizeColumnsOfPiA(matrixSize);
+            }
+
             _organizationDegreeA = CalcOrganizationDegree(_piA, matrixSize);
         }
 
-        private double InitializePiACalcCellValue(TransitionMatrixInput inputParameters, int i, int j, int matrixSize, Faculty faculty, XRandom rng, int jCorrector)
+        private void NormalizeColumnsOfPiA(int matrixSize)
+        {
+            for (var j = 0; j < matrixSize; j++)
+            {
+                var sum = 0.0;
+                for (var i = 0; i < matrixSize; i++)
+                {
+                    sum += _piA[i, j];
+                }
+
+                for (var i = 0; i < matrixSize; i++)
+                {
+                    _piA[i, j] /= sum;
+                }
+            }
+
+            for (var i = 0; i < matrixSize; i++)
+            {
+                var lineSum = 0.0;
+                for (var j = 0; j < matrixSize; j++)
+                {
+                    lineSum += _piA[i, j];
+                }
+
+                for (var j = 0; j < matrixSize; j++)
+                {
+                    _piA[i, j] = _piA[i, j] / lineSum;
+                }
+            }
+        }
+
+        private double InitializePiACalcCellValue(TransitionMatrixInput inputParameters, int i, int j, int matrixSize,
+            Faculty faculty, Random rng, int jCorrector)
         {
             var noiseFactor = 1 + 0.2 * (rng.NextDouble() - 0.5);
             if (inputParameters.ExtendedTransitionMatrix && i == 0 && j + 1 == matrixSize)
@@ -86,7 +127,8 @@ namespace Master40.DataGenerator.Generators
             return Math.Pow(inputParameters.Lambda, i - (j + jCorrector) - 1) / (2 * faculty.Calc(i - (j + jCorrector) - 1)) * noiseFactor;
         }
 
-        private void InitializePiB(TransitionMatrixInput inputParameters, ProductStructureInput inputProductStructure, int matrixSize, int jCorrector)
+        private void InitializePiB(TransitionMatrixInput inputParameters, ProductStructureInput inputProductStructure,
+            int matrixSize, int jCorrector, DataGeneratorTableTransitionMatrixSettingConfiguration setting)
         {
             if (_organizationDegreeA > inputParameters.DegreeOfOrganization)
             {
@@ -110,21 +152,25 @@ namespace Master40.DataGenerator.Generators
                 {
                     for (var j = 0; j < matrixSize; j++)
                     {
-                        /*
-                        if (i < matrixSize - 1 && j + jCorrector == i + 1)
+                        if (setting.BALANCED_PI_B_INIT.SettingValue == 0.0)
                         {
-                            _piB[i, j] = 1.0;
+                            if (i < matrixSize - 1 && j + jCorrector == i + 1)
+                            {
+                                _piB[i, j] = 1.0;
+                            }
+                            else if (i == matrixSize - 1 && j + jCorrector == jForSpecialCase - 1)
+                            {
+                                _piB[i, j] = 1.0;
+                            }
                         }
-                        else if (i == matrixSize - 1 && j + jCorrector == jForSpecialCase - 1)
+                        else
                         {
-                            _piB[i, j] = 1.0;
-                        }
-                        */
-                        // Es wurde entschieden, dass in diesem Fall die Matrix piB wie eine ("verschobene") Einheitsmatrix initiiert werden soll, damit jede Maschine eine andere Folgemaschine besitzt.
-                        // Grund: Wegen dem speziellen Fall, der für i = M-1 gilt, wo eine 1 gesetzt wird bei j = trunc(M - M/FT + 1) und dem dadurch verursachden Problem, dass (fast) nie zur ersten Maschine zurückgekerht werden kann (bei hohen OGs) und zusätzlich eine Übergangsschleife zwischen einigen Maschinen verursacht wird.
-                        if ((j + jCorrector) % matrixSize == (i + 1) % matrixSize)
-                        {
-                            _piB[i, j] = 1.0;
+                            // Es wurde entschieden, dass in diesem Fall die Matrix piB wie eine ("verschobene") Einheitsmatrix initiiert werden soll, damit jede Maschine eine andere Folgemaschine besitzt.
+                            // Grund: Wegen dem speziellen Fall, der für i = M-1 gilt, wo eine 1 gesetzt wird bei j = trunc(M - M/FT + 1) und dem dadurch verursachden Problem, dass (fast) nie zur ersten Maschine zurückgekerht werden kann (bei hohen OGs) und zusätzlich eine Übergangsschleife zwischen einigen Maschinen verursacht wird.
+                            if ((j + jCorrector) % matrixSize == (i + 1) % matrixSize)
+                            {
+                                _piB[i, j] = 1.0;
+                            }
                         }
                     }
                 }
@@ -190,7 +236,7 @@ namespace Master40.DataGenerator.Generators
             return 1.0 / (matrixSize - 1) * sum;
         }
 
-        public void OutputMatrixAsCsv(double[,] pi, int matrixSize)
+        public void OutputMatrixForExcel(double[,] pi, int matrixSize)
         {
             var output = "\n";
             for (var i = 0; i < matrixSize; i++)
@@ -199,13 +245,25 @@ namespace Master40.DataGenerator.Generators
                 {
                     if (j != 0)
                     {
-                        output += ",";
+                        output += "\t";
                     }
-                    output += "\"" + Math.Round(pi[i, j], 3) + "\"";
+                    output += "" + Math.Round(pi[i, j], 3) + "";
                 }
                 output += "\n";
             }
             System.Diagnostics.Debug.WriteLine(output);
+        }
+
+        public static double CalcMinPossibleDegreeOfOrganization(int machineGroupCount, bool extendedTransitionMatrix)
+        {
+            if (extendedTransitionMatrix)
+            {
+                var normalCell = (double)1 / machineGroupCount;
+                var result = machineGroupCount * Math.Pow(normalCell - (double)1 / (machineGroupCount + 1), 2) +
+                             Math.Pow(0 - (double)1 / (machineGroupCount + 1), 2);
+                return result / machineGroupCount;
+            }
+            return 0.0;
         }
 
     }

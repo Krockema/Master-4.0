@@ -7,7 +7,6 @@ namespace Master40.DB.GeneratorModel
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
         public DateTime StartTime { get; set; }
         public bool FinishedSuccessfully { get; set; }
         public DateTime? FinishTime { get; set; }

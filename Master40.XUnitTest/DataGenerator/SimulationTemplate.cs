@@ -29,29 +29,149 @@ namespace Master40.XUnitTest.DataGenerator
             // Simulation run 1
             yield return new object[]
             {
-                1      // approach id (test data generator input parameter set id)
-                , 240   // order Quantity
+                92      // approach id (test data generator input parameter set id)
+                , 2000   // order Quantity
                 , 240   // max bucket size
-                , 60    // throughput time
+                , 2000    // throughput time
                 , null  // Random seed
-                , 1/60d // arrival rate
-                , 15000 // simulation end
-                , 55    // min delivery time
-                , 65    // max delivery time
+                , 1/250d // arrival rate
+                , 11520 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
                 , 1     // test iteration number
             };
             /*yield return new object[]
             {
-                18      // approach id (test data generator input parameter set id)
-                , 240   // order Quantity
+                78      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
                 , 240   // max bucket size
-                , 60    // throughput time
+                , 2000    // throughput time
+                , 1329598382  // Random seed
+                , 0.016454585344449303 // arrival rate
+                , 10080 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 2     // test iteration number
+            };*/
+
+
+
+            /*yield return new object[]
+            {
+                75      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
                 , null  // Random seed
-                , 1/60d // arrival rate
-                , 15000 // simulation end
-                , 55    // min delivery time
-                , 65    // max delivery time
+                , 1/94d*1.31578947368421 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 1     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                76      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/52d*1.32352941176471 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 2     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                84      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/38d*1.25 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
                 , 3     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                78      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/86d*1.41509433962264 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 4     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                79      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/61d*1.13636363636364 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 5     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                85      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/35d*1.19363395225464 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 6     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                81      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/84d*1.25874125874126 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 7     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                82      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/59d*1.37404580152672 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 8     // test iteration number
+            };*/
+            /*yield return new object[]
+            {
+                86      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/30d*1.26760563380282 // arrival rate
+                , 50400 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 9     // test iteration number
             };*/
             // Simulation run 2
             /*yield return new object[]
@@ -104,77 +224,81 @@ namespace Master40.XUnitTest.DataGenerator
 
             var approach = ApproachRepository.GetApproachById(dataGenCtx, approachId);
             var generator = new MainGenerator();
-            await Task.Run(() =>
-                generator.StartGeneration(approach, masterCtx));
+            var testDataGenerated = generator.StartGeneration(approach, masterCtx);
 
-            var simContext = new AgentSimulation(DBContext: masterCtx, messageHub: new ConsoleHub());
-            var simConfig = ArgumentConverter.ConfigurationConverter(ctxResult, 1);
-
-            //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Trace, LogLevel.Trace);
-            LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Info, LogLevel.Info);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Debug, LogLevel.Debug);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PRIORITY, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.SCHEDULING, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.DISPOPRODRELATION, LogLevel.Debug, LogLevel.Debug);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PROPOSAL, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.INITIALIZE, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOB, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.ENQUEUE, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOBSTATE, LogLevel.Warn, LogLevel.Warn);
-            //LogConfiguration.LogTo(TargetTypes.File, TargetNames.LOG_AKKA, LogLevel.Trace, LogLevel.Trace);
-            //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AKKA, LogLevel.Warn);
-
-            var dataGenSim = new DB.GeneratorModel.Simulation();
-            dataGenSim.ApproachId = approachId;
-            dataGenSim.StartTime = DateTime.Now;
-            await Task.Run(() =>
+            if (testDataGenerated)
             {
-                dataGenCtx.Simulations.AddRange(dataGenSim);
-                dataGenCtx.SaveChanges();
-            });
 
-            if (seed == null)
-            {
-                seed = new Random().Next();
-            }
+                var simContext = new AgentSimulation(DBContext: ProductionDomainContext.GetContext(testCtxString), messageHub: new ConsoleHub());
+                var simConfig = ArgumentConverter.ConfigurationConverter(ctxResult, 1);
 
-            // update customized Configuration
-            simConfig.AddOption(new DBConnectionString(testResultCtxString));  
-            simConfig.ReplaceOption(new TimeConstraintQueueLength(480));
-            simConfig.ReplaceOption(new OrderArrivalRate(value: arrivalRate));
-            simConfig.ReplaceOption(new OrderQuantity(value: orderQuantity)); 
-            simConfig.ReplaceOption(new EstimatedThroughPut(value: throughput));
-            simConfig.ReplaceOption(new TimePeriodForThroughputCalculation(value: 2880));
-            simConfig.ReplaceOption(new Seed(value: (int) seed));
-            simConfig.ReplaceOption(new SettlingStart(value: 0)); 
-            simConfig.ReplaceOption(new SimulationEnd(value: simulationEnd));
-            simConfig.ReplaceOption(new SaveToDB(value: true));
-            simConfig.ReplaceOption(new MaxBucketSize(value: maxBucketSize));
-            simConfig.ReplaceOption(new SimulationNumber(value: dataGenSim.Id));
-            simConfig.ReplaceOption(new DebugSystem(value: true));
-            simConfig.ReplaceOption(new WorkTimeDeviation(0.0));
-            // anpassen der Lieferzeiten anhand der Erwarteten Durchlaufzeit. 
-            simConfig.ReplaceOption(new MinDeliveryTime(value: minDeliveryTime));
-            simConfig.ReplaceOption(new MaxDeliveryTime(value: maxDeliveryTime));
+                //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Trace, LogLevel.Trace);
+                LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Info, LogLevel.Info);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Debug, LogLevel.Debug);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PRIORITY, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.SCHEDULING, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.DISPOPRODRELATION, LogLevel.Debug, LogLevel.Debug);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.PROPOSAL, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.INITIALIZE, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOB, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, CustomLogger.ENQUEUE, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, CustomLogger.JOBSTATE, LogLevel.Warn, LogLevel.Warn);
+                //LogConfiguration.LogTo(TargetTypes.File, TargetNames.LOG_AKKA, LogLevel.Trace, LogLevel.Trace);
+                //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AKKA, LogLevel.Warn);
 
-            await Task.Run(() => 
-                ArgumentConverter.ConvertBackAndSave(ctxResult, simConfig, dataGenSim.Id));
-
-            var simulation = await simContext.InitializeSimulation(configuration: simConfig);
-
-            
-            if (simulation.IsReady())
-            {
-                // Start simulation
-                var sim = simulation.RunAsync();
-                simContext.StateManager.ContinueExecution(simulation);
-                await sim;
-                dataGenSim.FinishTime = DateTime.Now;
-                dataGenSim.FinishedSuccessfully = sim.IsCompletedSuccessfully;
+                var dataGenSim = new DB.GeneratorModel.Simulation();
+                dataGenSim.ApproachId = approachId;
+                dataGenSim.StartTime = DateTime.Now;
                 await Task.Run(() =>
+                {
+                    dataGenCtx.Simulations.AddRange(dataGenSim);
+                    dataGenCtx.SaveChanges();
+                });
+
+                if (seed == null)
+                {
+                    seed = new Random().Next();
+                }
+
+                // update customized Configuration
+                simConfig.AddOption(new DBConnectionString(testResultCtxString));
+                simConfig.ReplaceOption(new TimeConstraintQueueLength(480));
+                simConfig.ReplaceOption(new OrderArrivalRate(value: arrivalRate));
+                simConfig.ReplaceOption(new OrderQuantity(value: orderQuantity));
+                simConfig.ReplaceOption(new EstimatedThroughPut(value: throughput));
+                simConfig.ReplaceOption(new TimePeriodForThroughputCalculation(value: 2880));
+                simConfig.ReplaceOption(new Seed(value: (int)seed));
+                simConfig.ReplaceOption(new SettlingStart(value: 2880));
+                simConfig.ReplaceOption(new SimulationEnd(value: simulationEnd));
+                simConfig.ReplaceOption(new SaveToDB(value: true));
+                simConfig.ReplaceOption(new MaxBucketSize(value: maxBucketSize));
+                simConfig.ReplaceOption(new SimulationNumber(value: dataGenSim.Id));
+                simConfig.ReplaceOption(new DebugSystem(value: true));
+                simConfig.ReplaceOption(new WorkTimeDeviation(0.0));
+                // anpassen der Lieferzeiten anhand der Erwarteten Durchlaufzeit. 
+                simConfig.ReplaceOption(new MinDeliveryTime(value: minDeliveryTime));
+                simConfig.ReplaceOption(new MaxDeliveryTime(value: maxDeliveryTime));
+
+                await Task.Run(() =>
+                    ArgumentConverter.ConvertBackAndSave(ctxResult, simConfig, dataGenSim.Id));
+
+                var simulation = await simContext.InitializeSimulation(configuration: simConfig);
+
+
+                if (simulation.IsReady())
+                {
+                    // Start simulation
+                    var sim = simulation.RunAsync();
+                    simContext.StateManager.ContinueExecution(simulation);
+                    await sim;
+                    dataGenSim.FinishTime = DateTime.Now;
+                    dataGenSim.FinishedSuccessfully = sim.IsCompletedSuccessfully;
+                    await Task.Run(() =>
                         dataGenCtx.SaveChanges());
-                System.Diagnostics.Debug.WriteLine("################################# Simulation has finished with number " + dataGenSim.Id);
-                Assert.True(condition: sim.IsCompleted);
+                    System.Diagnostics.Debug.WriteLine(
+                        "################################# Simulation has finished with number " + dataGenSim.Id);
+                    Assert.True(condition: sim.IsCompleted);
+                }
             }
         }
 

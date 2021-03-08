@@ -1,0 +1,140 @@
+﻿[ // es können mehrere Eingabeparameter-Sets definiert werden, da es sich um ein Array handelt
+  {
+    "PresetSeed": null, //Angabe des Seeds: entweder ein konkreter ganzzahliger Wert oder null (wobei bei null ein zufälliger Seed bestimmt wird)
+    "UseExistingResourcesData": false, //Festlegung, ob Capabilities und Resources mitgeneriert werden (Wert: false) oder bereits in der DB vorhandene Maschinen genutzt werden sollen (Wert: true); wenn true, darf GeneralMachiningTimeParameterSet nicht null sein
+    "ProductStructureInput": {
+      "EndProductCount": 30, //Anhzahl der Endprodukte
+      "DepthOfAssembly": 4, //Fertigungstiefe; kann u.U. im Nachhinein vom System verändert werden, wenn erforderlich
+      "ReutilisationRatio": 4.0, //Mehrfachverwendungsgrad (darf nicht kleiner 1 sein)
+      "ComplexityRatio": 2.0, //Komplexitätsgrad (darf nicht kleiner 1 sein)
+      "MeanIncomingMaterialAmount": 1.0, //Mittelwert des zu generierenden Kantengewichtes (Menge eines Artikels in der BOM, die benötigt wird, um einen anderen Artikel herzustellen)
+      "VarianceIncomingMaterialAmount": 0.0 //Varianz des zu generierenden Kantengewichtes
+    },
+    "TransitionMatrixInput": {
+      "DegreeOfOrganization": 1.0, //Organisationsgrad (muss einschließlich zwischen 0 und 1 liegen); kann u.U. im Nachhinein vom System verändert werden, wenn erforderlich
+      "Lambda": 1.0, //Lambda für Poisson-Verteilung; wird bei der Initialisierung der Matrix Pi_A verwendet
+      "ExtendedTransitionMatrix": true, //false: normale Übergangsmatrix (Mean-/VarianceWorkPlanLength müssen angegeben werden!); true: die Anzahl der Arbeitsgänge pro Arbeitsplan wird mithilfe der Übergangsmatrix bestimmt
+      "InfiniteTools": true, //true: jede Maschine hat ihre eigenen Werkzeuge (werden nicht mit anderen Maschinen geteilt); false: jedes Werkzeug gibt es genau einmal und es kann nicht zu selben Zeit von mehrere Maschinen (der selben Maschinengruppe) verwendet werden 
+      "MeanWorkPlanLength": 4.0, //Mitelwert der zu generierenden Anzahl an Arbeitsgängen pro Arbeitsplan; darf nicht null sein, wenn ExtendedTransitionMatrix = false
+      "VarianceWorkPlanLength": 0.0, //Varianz der zu generierenden Anzahl an Arbeitsgängen pro Arbeitsplan;  darf nicht null sein, wenn ExtendedTransitionMatrix = false
+      "GeneralMachiningTimeParameterSet": { //wenn dieser Wert nicht null ist, gilt der hier für die Generierung der Bearbeitungszeiten angegebene Mittelwert und Varianz für jede Maschinengruppe, für die keine individuellen Bearbeitungszeiten generiert werden (wenn UseExistingResourcesData = false); wenn UseExistingResourcesData = true wird der hier festgelegte Mittelwert und die hier festgelegte Varianz für alle Maschinengruppen verwendet, die zuvor in der DB angelegt, aber diese Werte nicht jeweils spezifiziert wurden
+        "MeanMachiningTime": 10.0,
+        "VarianceMachiningTime": 2.0
+      },
+      "WorkingStations": [ //Maschinengruppen; Anzahl an unterschiedlichen Maschinengruppen ergibt sich aus Länge des Arrays; wird ignoriert, wenn UseExistingResourcesData = true
+        {
+          "ToolCount": 8, //Anzahl verschiedener Werkzeuge einer Maschine dieser Maschinengruppe
+          "ResourceCount": 4, //Anzahl der tatsächlichen Maschinen, die dieser Maschinengruppe angehören
+          "SetupTime": 32, //Rüstzeit für jede Maschinen dieser Gruppe
+          "OperatorCount": 0,
+          "MachiningTimeParameterSet": { //Angabe des Mittelwertes und der Varianz zur Generierung von individuellen Bearbeitungszeiten für Maschinen dieser Gruppe; falls nicht null und GeneralMachiningTimeParameterSet auch nicht null: individuell überschreibt allgemein; falls dieser Wert bei mindestens einem der Maschinengruppen null ist, so darf GeneralMachiningTimeParameterSet nicht null sein
+            "MeanMachiningTime": 16.0,
+            "VarianceMachiningTime": 0.0
+          }
+        },
+        {
+          "ToolCount": 6,
+          "ResourceCount": 3,
+          "SetupTime": 24,
+          "OperatorCount": 0,
+          "MachiningTimeParameterSet": {
+            "MeanMachiningTime": 12.0,
+            "VarianceMachiningTime": 0.0
+          }
+        },
+        {
+          "ToolCount": 10,
+          "ResourceCount": 5,
+          "SetupTime": 40,
+          "OperatorCount": 0,
+          "MachiningTimeParameterSet": {
+            "MeanMachiningTime": 20.0,
+            "VarianceMachiningTime": 0.0
+          }
+        },
+        {
+          "ToolCount": 4,
+          "ResourceCount": 2,
+          "SetupTime": 16,
+          "OperatorCount": 0,
+          "MachiningTimeParameterSet": {
+            "MeanMachiningTime": 8.0,
+            "VarianceMachiningTime": 0.0
+          }
+        }
+      ],
+      "SettingConfiguration": [ //zusätzliche Konfigurationen bezüglich der Übergangsmatrix; einzelne Array-Objekte können weggelassen werden - im System ist für jede Option ein Standardwert definiert, der verwendet wird, wenn keine explizite Angabe stattfindet
+        {
+          "SettingValue": 1.0, //Wert ist vom Typ double, kann aber auch als boolean oder integer interpretiert werden, je nach dem um welche Option es sich handelt
+          "SettingOption": {
+            "Name": "BALANCED_PI_B_INIT" //Angabe der Option durch Namen
+          }
+        },
+        {
+          "SettingValue": 1.0,
+          "SettingOption": {
+            "Name": "BALANCED_PI_A_INIT"
+          }
+        }
+      ]
+    },
+    "BomInput": {
+      "WeightEpsilon": 0.001, //Angabe des minimalen Kantengewichtes (siehe ***IncomingMaterialAmount); da als Zufallszahl 0 generiert werden kann, dies aber als Kantengewicht verboten ist, wird einer untere Grenze benötigt
+      "EdgeWeightRoundMode": {
+        "Name": "always round" //Festlegung der Rundungsbetriebsart durch den Namen; folgende Namen sind nutzbar: "always round", "never round" und "round only if it makes sense"
+      }
+    }
+  },
+  {
+    "PresetSeed": null,
+    "ProductStructureInput": {
+      "EndProductCount": 300,
+      "DepthOfAssembly": 4,
+      "ReutilisationRatio": 1.5,
+      "ComplexityRatio": 2.0,
+      "MeanIncomingMaterialAmount": 2.0,
+      "VarianceIncomingMaterialAmount": 1.3
+    },
+    "TransitionMatrixInput": {
+      "DegreeOfOrganization": 0.5,
+      "Lambda": 1.3,
+      "ExtendedTransitionMatrix": false,
+      "InfiniteTools": true,
+      "MeanWorkPlanLength": 4.0,
+      "VarianceWorkPlanLength": 0.0,
+      "GeneralMachiningTimeParameterSet": {
+        "MeanMachiningTime": 10.0,
+        "VarianceMachiningTime": 2.0
+      },
+      "WorkingStations": [
+        {
+          "ToolCount": 8,
+          "ResourceCount": 4,
+          "SetupTime": 32,
+          "OperatorCount": 0,
+          "MachiningTimeParameterSet": null
+        }
+      ],
+      "SettingConfiguration": [
+        {
+          "SettingValue": 1.0,
+          "SettingOption": {
+            "Name": "BALANCED_PI_B_INIT"
+          }
+        },
+        {
+          "SettingValue": 1.0,
+          "SettingOption": {
+            "Name": "BALANCED_PI_A_INIT"
+          }
+        }
+      ]
+    },
+    "BomInput": {
+      "WeightEpsilon": 0.001,
+      "EdgeWeightRoundMode": {
+        "Name": "always round"
+      }
+    }
+  }
+]
