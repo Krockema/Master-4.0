@@ -29,7 +29,7 @@ namespace Master40.XUnitTest.DataGenerator
             // Simulation run 1
             yield return new object[]
             {
-                92      // approach id (test data generator input parameter set id)
+                1      // approach id (test data generator input parameter set id)
                 , 2000   // order Quantity
                 , 240   // max bucket size
                 , 2000    // throughput time

@@ -94,7 +94,7 @@ namespace Master40.DataGenerator.Generators
             {
                 List<ResourceProperty> resourceProperties = approach.TransitionMatrixInput.WorkingStations
                     .Select(x => (ResourceProperty)x).ToList();
-                ResourceCapabilities = ResourceInitializer.Initialize(dbContext, resourceProperties, approach.TransitionMatrixInput.InfiniteTools);
+                ResourceCapabilities = ResourceInitializer.Initialize(dbContext, resourceProperties, approach.TransitionMatrixInput.InfiniteTools, 4);
             }
 
             var operationGenerator = new OperationGenerator();
