@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using Master40.DataGenerator.Generators;
 using Master40.DataGenerator.Repository;
 using Master40.DataGenerator.Util;
@@ -26,7 +24,7 @@ namespace Master40.XUnitTest.DataGenerator
         private const string testCtxString = "Server=(localdb)\\mssqllocaldb;Database=TestContext;Trusted_Connection=True;MultipleActiveResultSets=true";
         private const string testResultCtxString = "Server=(localdb)\\mssqllocaldb;Database=TestResultContext;Trusted_Connection=True;MultipleActiveResultSets=true";
         private const string testGeneratorCtxString = "Server=(localdb)\\mssqllocaldb;Database=TestGeneratorContext;Trusted_Connection=True;MultipleActiveResultSets=true";
-        private const string pathToJsonFile = "path/to/JSON/file";
+        private const string pathToJsonFile = "C:\\Users\\admin\\source\\repos\\Eugen\\import&export\\set1";
 
         [Fact]
         public void SetInputViaJsonFile()
@@ -122,10 +120,10 @@ namespace Master40.XUnitTest.DataGenerator
                 var rng = new Random();
                 approach.ProductStructureInput = new ProductStructureInput
                 {
-                    EndProductCount = !randomGeneratedInputValues ? 30 : rng.Next(9) + 2,
-                    DepthOfAssembly = !randomGeneratedInputValues ? 4 : rng.Next(10) + 1,
-                    ComplexityRatio = !randomGeneratedInputValues ? 2 : rng.NextDouble() + 1,
-                    ReutilisationRatio = !randomGeneratedInputValues ? 15 : rng.NextDouble() + 1,
+                    EndProductCount = !randomGeneratedInputValues ? 3 : rng.Next(9) + 2,
+                    DepthOfAssembly = !randomGeneratedInputValues ? 5 : rng.Next(10) + 1,
+                    ComplexityRatio = !randomGeneratedInputValues ? 2.2 : rng.NextDouble() + 1,
+                    ReutilisationRatio = !randomGeneratedInputValues ? 1.2 : rng.NextDouble() + 1,
                     MeanIncomingMaterialAmount = 1,
                     VarianceIncomingMaterialAmount = 0.0
                 };
@@ -134,7 +132,7 @@ namespace Master40.XUnitTest.DataGenerator
                 //Limit für Lambda und Anzahl Bearbeitungsstationen jeweils 100
                 var individualMachiningTime = true;
                 double? doubleNull = null;
-                var extendedTransitionMatrix = false;
+                var extendedTransitionMatrix = true;
                 var createIndividualMachiningTime = individualMachiningTime && !approach.UseExistingResourcesData;
                 approach.TransitionMatrixInput = new TransitionMatrixInput
                 {
@@ -295,8 +293,8 @@ namespace Master40.XUnitTest.DataGenerator
         [Fact]
         public void GenerateData() //Generierung für Simulation direkt im Testfall, wo Simulation durchgeführt wird
         {
-            var approachRangeStart = 76;
-            var approachRangeEnd = 76;
+            var approachRangeStart = 91;
+            var approachRangeEnd = 91;
             for (var i = approachRangeStart; i < approachRangeEnd + 1; i++)
             {
                 var approachId = i;

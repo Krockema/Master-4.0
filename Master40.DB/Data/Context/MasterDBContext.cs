@@ -24,8 +24,8 @@ namespace Master40.DB.Data.Context
         public DbSet<M_BusinessPartner> BusinessPartners { get; set; }
         public DbSet<M_Resource> Resources { get; set; }
         public DbSet<M_ResourceCapability> ResourceCapabilities { get; set; }
-        public DbSet<M_ResourceCapabilityProvider> ResourceCapabilityProviders { get; set; }
-        public DbSet<M_ResourceSetup> ResourceSetups { get; set; }
+        public DbSet<M_ResourceCapabilityProvider> ResourceCapabilityProviders { get; set; } //das
+        public DbSet<M_ResourceSetup> ResourceSetups { get; set; } //und das
         public DbSet<M_Stock> Stocks { get; set; }
         public DbSet<M_Unit> Units { get; set; }
         public DbSet<M_Operation> Operations { get; set; }

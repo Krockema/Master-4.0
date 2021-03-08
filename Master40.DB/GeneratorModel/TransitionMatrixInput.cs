@@ -27,8 +27,7 @@ namespace Master40.DB.GeneratorModel
 
         [JsonProperty(Required = Required.AllowNull)]
         public MachiningTimeParameterSet GeneralMachiningTimeParameterSet { get; set; }
-
-        [MinLength(1)]
+        
         [JsonProperty(Required = Required.Always)]
         public virtual ICollection<WorkingStationParameterSet> WorkingStations { get; set; }
 

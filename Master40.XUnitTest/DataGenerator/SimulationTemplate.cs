@@ -27,6 +27,35 @@ namespace Master40.XUnitTest.DataGenerator
         public static IEnumerable<object[]> GetTestData()
         {
             // Simulation run 1
+            yield return new object[]
+            {
+                92      // approach id (test data generator input parameter set id)
+                , 2000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , null  // Random seed
+                , 1/250d // arrival rate
+                , 11520 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 1     // test iteration number
+            };
+            /*yield return new object[]
+            {
+                78      // approach id (test data generator input parameter set id)
+                , 4000   // order Quantity
+                , 240   // max bucket size
+                , 2000    // throughput time
+                , 1329598382  // Random seed
+                , 0.016454585344449303 // arrival rate
+                , 10080 // simulation end
+                , 1900    // min delivery time
+                , 2100    // max delivery time
+                , 2     // test iteration number
+            };*/
+
+
+
             /*yield return new object[]
             {
                 75      // approach id (test data generator input parameter set id)
@@ -66,7 +95,7 @@ namespace Master40.XUnitTest.DataGenerator
                 , 2100    // max delivery time
                 , 3     // test iteration number
             };*/
-            yield return new object[]
+            /*yield return new object[]
             {
                 78      // approach id (test data generator input parameter set id)
                 , 4000   // order Quantity
@@ -78,7 +107,7 @@ namespace Master40.XUnitTest.DataGenerator
                 , 1900    // min delivery time
                 , 2100    // max delivery time
                 , 4     // test iteration number
-            };
+            };*/
             /*yield return new object[]
             {
                 79      // approach id (test data generator input parameter set id)
@@ -195,13 +224,12 @@ namespace Master40.XUnitTest.DataGenerator
 
             var approach = ApproachRepository.GetApproachById(dataGenCtx, approachId);
             var generator = new MainGenerator();
-            var testDataGenerated = await Task.Run(() =>
-            generator.StartGeneration(approach, masterCtx));
+            var testDataGenerated = generator.StartGeneration(approach, masterCtx);
 
             if (testDataGenerated)
             {
 
-                var simContext = new AgentSimulation(DBContext: masterCtx, messageHub: new ConsoleHub());
+                var simContext = new AgentSimulation(DBContext: ProductionDomainContext.GetContext(testCtxString), messageHub: new ConsoleHub());
                 var simConfig = ArgumentConverter.ConfigurationConverter(ctxResult, 1);
 
                 //LogConfiguration.LogTo(TargetTypes.Debugger, TargetNames.LOG_AGENTS, LogLevel.Trace, LogLevel.Trace);

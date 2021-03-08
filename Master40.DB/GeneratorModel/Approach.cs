@@ -75,6 +75,11 @@ namespace Master40.DB.GeneratorModel
                 throw new Exception(
                     "You need to set mean and variance of work plan length if you want to use the non extended transition matrix");
             }
+
+            if (!UseExistingResourcesData && TransitionMatrixInput.WorkingStations.Count == 0)
+            {
+                throw new Exception("You need to specify at least 1 working station");
+            }
         }
 
         [OnSerializing]
