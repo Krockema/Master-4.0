@@ -14,7 +14,6 @@
   <ItemGroup>
     <PackageReference Include="EfCore.InMemoryHelpers" Version="1.9.11" />
     <PackageReference Include="EntityFrameworkCore.Cacheable" Version="2.0.1" />
-    <PackageReference Include="Mate.DataCore.GanttPlanApi" Version="1.0.1" />
     <PackageReference Include="Mate.DataCore.PiWebApi" Version="1.0.0" />
     <PackageReference Include="MathNet.Numerics" Version="4.15.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.5" />
@@ -35,5 +34,8 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.113.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Composition" Version="5.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\GanttPlanApi\src\Mate.DataCore.GanttPlanApi\Mate.DataCore.GanttPlanApi.csproj" />
   </ItemGroup>
 </Project>
