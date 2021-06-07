@@ -48,7 +48,7 @@ namespace Mate.Production.Core.Agents.SupervisorAgent.Behaviour
             , List<FSetEstimatedThroughputTimes.FSetEstimatedThroughputTime> estimatedThroughputTimes)
         {
             _ganttContext = Dbms.GetGanttDataBase(dbName: dbNameGantt).DbContext;
-            _productionContext = Dbms.GetMateDataBase(dbName: dbNameProduction).DbContext;
+            _productionContext = Dbms.GetMateDataBase(dbName: dbNameProduction, noTracking: false).DbContext;
             _dataBaseConnection = _ganttContext.Database.GetDbConnection();
             _messageHub = messageHub;
             _orderGenerator = new OrderGenerator(simConfig: configuration,

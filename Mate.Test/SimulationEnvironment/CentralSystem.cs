@@ -25,8 +25,8 @@ namespace Mate.Test.SimulationEnvironment
 {
     public class CentralSystem : TestKit
     {
-        private readonly string TestMateDb = "Master40"; //+ DataBaseConfiguration.MateDb;
-        private readonly string TestMateResultDb = DataBaseConfiguration.MateResultDb;
+        private readonly string TestMateDb = "Test" + DataBaseConfiguration.MateDb;
+        private readonly string TestMateResultDb = "Test" + DataBaseConfiguration.MateResultDb;
 
         [Fact]
         public void TestDateUpdate()
@@ -107,13 +107,13 @@ namespace Mate.Test.SimulationEnvironment
             ganttPlanContext.DbContext.Database.ExecuteSqlRaw("EXEC sp_MSforeachtable 'DELETE FROM ? '");
 
             //Synchronisation GanttPlan
-            var ganttPlanOptRunner = new GanttPlanOptRunner("C:\\Program Files\\GANTTPLAN\\GanttPlanOptRunner.exe");
-            
+            GanttPlanOptRunner.Inizialize();
+
             var simContext = new GanttSimulation(dbName: TestMateDb, messageHub: new ConsoleHub());
             var simConfig = ArgumentConverter.ConfigurationConverter(masterPlanResultContext, 1);
             // update customized Items
-            simConfig.AddOption(new ResultsDbConnectionString(ganttPlanContext.DbContext.Database.GetConnectionString()));
-            simConfig.ReplaceOption(new KpiTimeSpan(240));
+            simConfig.AddOption(new ResultsDbConnectionString(masterPlanResultContext.Database.GetConnectionString()));
+            simConfig.ReplaceOption(new KpiTimeSpan(480));
             simConfig.ReplaceOption(new TimeConstraintQueueLength(480));
             simConfig.ReplaceOption(new SimulationKind(value: simtulationType));
             simConfig.ReplaceOption(new OrderArrivalRate(value: arrivalRate));
