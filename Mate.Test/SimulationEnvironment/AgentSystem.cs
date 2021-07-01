@@ -26,7 +26,7 @@ namespace Mate.Test.SimulationEnvironment
     {
 
         private readonly string TestMateDb = "Test" + DataBaseConfiguration.MateDb;
-        private readonly string TestMateResultDb = "Test" + DataBaseConfiguration.MateResultDb;
+        private readonly string TestMateResultDb = "GanttplanSys" + DataBaseConfiguration.MateResultDb;
 
         [Fact]
         public void TestRawSQL()

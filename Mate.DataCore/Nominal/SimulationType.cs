@@ -6,6 +6,7 @@
         Central,
         Decentral,
         Default,
-        Queuing
+        Queuing,
+        Confirmation
     }
 }

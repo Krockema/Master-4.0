@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\GanttPlanApi\src\Mate.DataCore.GanttPlanApi\Mate.DataCore.GanttPlanApi.csproj" />
+    <ProjectReference Include="..\Mate.DataCore\Mate.DataCore.csproj" />
+    <ProjectReference Include="..\Mate.Production.CLI\Mate.Production.CLI.csproj" />
+    <ProjectReference Include="..\Mate.Production.Core\Mate.Production.Core.csproj" />
+  </ItemGroup>
+
+</Project>

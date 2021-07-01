@@ -16,7 +16,11 @@
         <PackageReference Include="Hangfire.Console" Version="1.4.2" />
         <PackageReference Include="HangFire.Core" Version="1.7.22" />
         <PackageReference Include="HangFire.SqlServer" Version="1.7.22" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.7">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>

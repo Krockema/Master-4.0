@@ -7,7 +7,7 @@ using LogLevel = NLog.LogLevel;
 namespace Mate.Production.Core.Reporting
 {
     // A dead letter handling actor specifically for messages of type "DeadLetter"
-    class DeadLetterMonitor :  ReceiveActor
+    public class DeadLetterMonitor :  ReceiveActor
     {
         private Logger _logger = LogManager.GetLogger(TargetNames.LOG_AKKA);
         public DeadLetterMonitor()

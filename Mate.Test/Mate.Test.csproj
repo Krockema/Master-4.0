@@ -29,7 +29,7 @@
     <PackageReference Include="Akka.TestKit.Xunit" Version="1.4.18" />
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
     <PackageReference Include="EfCore.InMemoryHelpers" Version="1.9.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
     <PackageReference Include="sqlite" Version="3.13.0" />
@@ -42,6 +42,7 @@
   </ItemGroup>
 
 	<ItemGroup>
+    <ProjectReference Include="..\MATE.GANTTPLAN.ConfirmationSimulator\Mate.Ganttplan.ConfirmationSimulator.csproj" />
     <ProjectReference Include="..\Mate\Mate.csproj" />
   </ItemGroup>
   <ItemGroup>
